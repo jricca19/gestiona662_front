@@ -1,0 +1,20 @@
+{
+  "login": {
+    "title": "Bienvenido a Gestiona662",
+    "subtitle": "Conectamos escuelas con maestros de forma rápida y segura",
+    "forgot": "¿Olvidaste tu contraseña?",
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "es": "Español",
+    "en": "Inglés"
+  },
+  "form": {
+    "email": "Correo electrónico",
+    "password": "Contraseña"
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "email": "Formato de correo inválido",
+    "min": "Debe tener al menos {{count}} caracteres"
+  }
+}

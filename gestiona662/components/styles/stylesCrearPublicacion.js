@@ -1,0 +1,150 @@
+import { StyleSheet, Dimensions } from 'react-native';
+import { colores, tamanos } from './fuentesyColores';
+
+const { width, height } = Dimensions.get('window')
+
+export const stylesCrearPublicacion = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colores.fondo,
+  },
+  header: {
+    width: '100%',
+    backgroundColor: colores.primario,
+    paddingVertical: height * 0.01,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  backButton: {
+    marginHorizontal: width * 0.04,
+  },
+  headerTitle: {
+    color: colores.terceario,
+    fontSize: tamanos.titulo1,
+    fontWeight: 'bold',
+  },
+  form: {
+    flex: 1,
+    paddingHorizontal: width * 0.05,
+    paddingTop: height * 0.06,
+  },
+  label: {
+    fontWeight: 'bold',
+    color: colores.primario,
+    marginBottom: 2,
+    marginTop: 10,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    backgroundColor: colores.cuarto,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colores.tercearioOscuro,
+    paddingRight: width * 0.02,
+    elevation: 1,
+  },
+  input: {
+    flex: 1,
+    padding: width * 0.04,
+    fontSize: 15,
+    color: colores.quinto,
+    fontStyle: 'italic',
+    backgroundColor: 'transparent',
+  },
+  iconInput: {
+    marginLeft: 2,
+  },
+  row: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    marginTop: 2,
+  },
+  turnoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+    marginTop: 2,
+  },
+  turnoOpcion: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 8,
+    paddingVertical: height * 0.01,
+  },
+  radio: {
+    width: width * 0.07,
+    height: width * 0.07,
+    borderRadius: width * 0.06,
+    borderWidth: 2,
+    borderColor: '#ccc',
+    marginRight: 5,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radioSelected: {
+    borderColor: '#03A9E0',
+    backgroundColor: '#03A9E0',
+  },
+  turnoText: {
+    fontSize: 13,
+    color: '#444',
+    marginRight: 2,
+  },
+  textArea: {
+    backgroundColor: colores.cuarto,
+    borderRadius: width * 0.02,
+    borderWidth: 1,
+    borderColor: colores.tercearioOscuro,
+    padding: width * 0.04,
+    fontSize: tamanos.texto,
+    fontStyle: 'italic',
+    minHeight: height * 0.1,
+    marginBottom: height * 0.02,
+    marginTop: 5,
+    textAlignVertical: 'top',
+  },
+  boton: {
+    backgroundColor: colores.primario,
+    borderRadius: 8,
+    paddingVertical: 13,
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 20,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+  },
+  botonTexto: {
+    color: colores.cuarto,
+    fontWeight: 'bold',
+    fontSize: tamanos.texto,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBox: {
+    backgroundColor: colores.cuarto,
+    borderRadius: 10,
+    padding: 10,
+    width: width * 0.5,
+    height: height * 0.5,
+    elevation: 5,
+  },
+  modalItem: {
+    padding: height * 0.02,
+    borderBottomWidth: 1,
+    borderBottomColor: colores.terceario,
+    alignItems: 'center',
+    justifyContent: 'center',
+  }
+});

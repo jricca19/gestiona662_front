@@ -1,0 +1,121 @@
+import { StyleSheet, Dimensions } from 'react-native'
+import { colores, tamanos } from './fuentesyColores'
+
+const { width, height } = Dimensions.get('window')
+
+export const estilosDetalles = StyleSheet.create({
+    contenedor: {
+        flex: 1,
+        backgroundColor: colores.terceario,
+    },
+    encabezado: {
+        backgroundColor: colores.primario,
+        paddingVertical: height * 0.01,
+        paddingHorizontal: width * 0.04,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    tituloEncabezado: {
+        color: colores.terceario,
+        fontSize: tamanos.titulo1,
+        fontWeight: 'bold',
+    },
+    contenidoScroll: {
+        alignItems: 'center',
+        padding: width * 0.04,
+    },
+    nombreEscuela: {
+        fontSize: tamanos.titulo2,
+        fontWeight: 'bold',
+        color: colores.quinto,
+        marginTop: height * 0.02,
+        marginBottom: height * 0.01,
+        textAlign: 'center',
+    },
+    tituloSeccion: {
+        fontSize: tamanos.subtitulo,
+        fontWeight: 'bold',
+        color: colores.quinto,
+        marginTop: height * 0.01,
+        textAlign: 'center',
+    },
+    direccion: {
+        fontSize: tamanos.texto,
+        color: colores.quinto,
+        marginBottom: height * 0.02,
+        textAlign: 'center',
+    },
+    fila: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        marginBottom: height * 0.02,
+        marginTop: height * 0.01,
+    },
+    tarjeta: {
+        backgroundColor: colores.secundarioClaro,
+        borderRadius: width * 0.03,
+        padding: width * 0.04,
+        width: width * 0.4,
+        alignItems: 'center',
+        shadowColor: colores.quinto,
+        shadowOpacity: 0.07,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    tarjetaFechas: {
+        backgroundColor: colores.secundarioClaro,
+        borderRadius: width * 0.03,
+        padding: width * 0.04,
+        width: '100%',
+        alignItems: 'center',
+        marginBottom: height * 0.02,
+        marginTop: height * 0.01,
+        shadowColor: colores.quinto,
+        shadowOpacity: 0.07,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    etiquetaTarjeta: {
+        color: colores.primario,
+        fontWeight: 'bold',
+        fontSize: tamanos.menu,
+        marginBottom: height * 0.005,
+    },
+    valorTarjeta: {
+        fontSize: tamanos.titulo2,
+        fontWeight: 'bold',
+        color: colores.quinto,
+    },
+    subValorTarjeta: {
+        fontSize: tamanos.texto,
+        color: colores.sexto,
+        marginTop: height * 0.003,
+    },
+    tituloMes: {
+        fontSize: tamanos.textoMayor,
+        fontWeight: 'bold',
+        color: colores.quinto,
+        marginBottom: height * 0.015,
+        alignSelf: 'center',
+        marginLeft: width * 0.02,
+    },
+    filaDia: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colores.cuarto,
+        borderRadius: width * 0.02,
+        borderWidth: 1,
+        borderColor: colores.tercearioOscuro,
+        paddingVertical: height * 0.012,
+        paddingHorizontal: width * 0.04,
+        marginBottom: height * 0.012,
+        width: '80%',
+    },
+    etiquetaDia: {
+        marginHorizontal: width * 0.03,
+        fontSize: tamanos.texto,
+        color: colores.quinto,
+    },
+})
