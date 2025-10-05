@@ -5,6 +5,7 @@ import * as SecureStore from 'expo-secure-store';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { colores, tamanos } from '../styles/fuentesyColores';
+import { URL_BACKEND } from '@env';
 
 const { width, height } = Dimensions.get('window')
 
@@ -31,7 +32,7 @@ const PostulacionesPublicacion = ({ navigation, route }) => {
 
         try {
             const token = await SecureStore.getItemAsync('token');
-            const res = await fetch(`https://gestiona662-backend.vercel.app/v1/publications/assignPostulation/multiple`, {
+            const res = await fetch(`${URL_BACKEND}/v1/publications/assignPostulation/multiple`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,

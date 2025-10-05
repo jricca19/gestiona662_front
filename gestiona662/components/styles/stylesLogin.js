@@ -60,7 +60,7 @@ export const stylesLogin = StyleSheet.create({
         padding: width * 0.06,
         justifyContent: 'center',
         marginHorizontal: width * 0.08,
-        marginVertical: height * 0.01,
+        marginVertical: height * 0.08,
         backgroundColor: colores.terceario
     },
     filaInput: {

@@ -6,6 +6,7 @@ import * as SecureStore from 'expo-secure-store';
 import { colores } from '../styles/fuentesyColores';
 import { formatUTC } from '../../utils/formatUTC';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { URL_BACKEND } from '@env';
 
 const PublicacionesDirector = ({ navigation, route }) => {
     const [datos, setDatos] = useState([]);
@@ -26,7 +27,7 @@ const PublicacionesDirector = ({ navigation, route }) => {
         try {
             const token = await SecureStore.getItemAsync('token');
 
-            const res = await fetch('https://gestiona662-backend.vercel.app/v1/publications/school', {
+            const res = await fetch(`${URL_BACKEND}/v1/publications/school`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -61,7 +62,7 @@ const PublicacionesDirector = ({ navigation, route }) => {
             if (postulaciones[publicationId]) return;
 
             const token = await SecureStore.getItemAsync('token');
-            const res = await fetch(`https://gestiona662-backend.vercel.app/v1/postulations/publication/${publicationId}`, {
+            const res = await fetch(`${URL_BACKEND}/v1/postulations/publication/${publicationId}`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -95,7 +96,7 @@ const PublicacionesDirector = ({ navigation, route }) => {
             try {
                 const token = await SecureStore.getItemAsync('token');
 
-                const res = await fetch('https://gestiona662-backend.vercel.app/v1/schools/user', {
+                const res = await fetch(`${URL_BACKEND}/v1/schools/user`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,

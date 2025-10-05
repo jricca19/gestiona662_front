@@ -1,4 +1,4 @@
-import { Text, View, TextInput, Button, Alert, Modal, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { Text, View, TextInput, Alert, Modal, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useForm, Controller } from 'react-hook-form';
 import * as yup from 'yup';
@@ -10,6 +10,7 @@ import { stylesRegistro } from './styles/stylesRegistro';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useEffect, useState } from 'react';
 import { colores } from './styles/fuentesyColores';
+import { URL_BACKEND } from '@env';
 
 const schema = yup.object().shape({
   name: yup
@@ -53,12 +54,13 @@ const FormularioRegistro = ({ navigation }) => {
   const [ciudades, setCiudades] = useState([]);
   const [selectedCity, setSelectedCity] = useState('');
   const [loading, setLoading] = useState(false);
+  
 
   useEffect(() => {
     const cargarCiudades = async () => {
       if (modalVisible && defaultDeptId) {
         try {
-          const res = await fetch(`https://gestiona662-backend.vercel.app/departments/${defaultDeptId}`);
+          const res = await fetch(`${URL_BACKEND}/departments/${defaultDeptId}`);
           const data = await res.json();
           setCiudades(data || []);
         } catch (error) {
@@ -77,7 +79,7 @@ const FormularioRegistro = ({ navigation }) => {
       return;
     }
     try {
-      const res = await fetch(`https://gestiona662-backend.vercel.app/schools`, {
+      const res = await fetch(`${URL_BACKEND}/schools`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -113,8 +115,8 @@ const FormularioRegistro = ({ navigation }) => {
     const obtenerDatos = async () => {
       try {
         const [resEscuelas, resDeptos] = await Promise.all([
-          fetch('https://gestiona662-backend.vercel.app/schoolsSelect'),
-          fetch('https://gestiona662-backend.vercel.app/departments'),
+          fetch(`${URL_BACKEND}/schoolsSelect`),
+          fetch(`${URL_BACKEND}/departments`),
         ]);
 
         const escuelasData = await resEscuelas.json();
@@ -163,7 +165,7 @@ const FormularioRegistro = ({ navigation }) => {
     };
 
     try {
-      const response = await fetch('https://gestiona662-backend.vercel.app/v1/auth/signup', {
+      const response = await fetch(`${URL_BACKEND}/v1/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dataToSend),
@@ -175,7 +177,7 @@ const FormularioRegistro = ({ navigation }) => {
         await SecureStore.setItemAsync("token", data.token);
         await SecureStore.setItemAsync("isLogged", "true");
 
-        const profileResp = await fetch('https://gestiona662-backend.vercel.app/v1/users/profile', {
+        const profileResp = await fetch(`${URL_BACKEND}/v1/users/profile`, {
           headers: {
             'Authorization': `Bearer ${data.token}`,
             'Content-Type': 'application/json',
@@ -491,7 +493,7 @@ const FormularioRegistro = ({ navigation }) => {
                           setDefaultDeptId(deptId);
                           setSelectedCity('');
                           try {
-                            const res = await fetch(`https://gestiona662-backend.vercel.app/departments/${deptId}`);
+                            const res = await fetch(`${URL_BACKEND}/departments/${deptId}`);
                             const data = await res.json();
                             setCiudades(data || []);
                           } catch (error) {
