@@ -9,6 +9,7 @@ import { Provider, useDispatch } from 'react-redux';
 import { loguear, desloguear } from './store/slices/usuarioSlice';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { jwtDecode } from "jwt-decode";
+import { colores } from './components/styles/fuentesyColores';
 
 function isTokenValid(token) {
   if (!token) return false;
@@ -59,8 +60,8 @@ function AppContent() {
   if (loading) {
     return (
       <SafeAreaProvider>
-        <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#009BDB" />
+        <SafeAreaView style={styles.cargando}>
+          <ActivityIndicator size="large" color={colores.primario} />
           <Text>Cargando...</Text>
         </SafeAreaView>
       </SafeAreaProvider>
@@ -69,7 +70,7 @@ function AppContent() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#009BDB' }} edges={['top', 'bottom']}>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         <StatusBar style="light" />
         <NavigationContainer>
           <Pantallas />
@@ -88,10 +89,13 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: colores.primario,
   },
+  cargando:{
+    flex:1,
+    justifyContent:'center',
+    alignItems:'center',
+  }
 });

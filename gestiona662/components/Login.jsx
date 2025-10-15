@@ -1,4 +1,4 @@
-import { Text, View, TextInput, TouchableOpacity, Alert, Image, ActivityIndicator, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { Text, View, TextInput, TouchableOpacity, Alert, Image, ActivityIndicator, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -87,65 +87,76 @@ const Login = ({ navigation }) => {
   };
 
   return (
-    <View style={stylesLogin.container}>
-      <Image
-        source={require('../assets/logo-login.png')}
-        style={stylesLogin.logo}
-      />
-      <Text style={stylesLogin.titulo}>Iniciar sesión</Text>
-      <Text style={stylesLogin.subtitulo}>Ingresa tus credenciales para acceder</Text>
-      <View style={stylesLogin.filaInput}>
-        <Controller
-          control={control}
-          name="email"
-          render={({ field: { onChange, value } }) => (
-            <TextInput
-              style={stylesLogin.input}
-              placeholder="Correo electrónico"
-              keyboardType="email-address"
-              value={value}
-              onChangeText={onChange}
-              placeholderTextColor={colores.tercearioOscuro}
-            />
-          )}
-        />
-        {errors.email && <Text style={stylesLogin.error}>{errors.email.message}</Text>}
-      </View>
-      <View style={stylesLogin.filaInput}>
-        <Controller
-          control={control}
-          name="password"
-          render={({ field: { onChange, value } }) => (
-            <TextInput
-              style={stylesLogin.input}
-              placeholder="Contraseña"
-              secureTextEntry
-              value={value}
-              onChangeText={onChange}
-              placeholderTextColor={colores.tercearioOscuro}
-            />
-          )}
-        />
-        {errors.password && <Text style={stylesLogin.error}>{errors.password.message}</Text>}
-      </View>
-      <TouchableOpacity style={stylesLogin.botonRecuperar}>
-        <Text style={stylesLogin.textoBotonRecuperar}>¿Olvidaste tu contraseña?</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={stylesLogin.botonIniciarSesion}
-        onPress={handleSubmit(onSubmit)}
-        disabled={loading}
+    <KeyboardAvoidingView
+      style={stylesLogin.container}
+      behavior={Platform.select({ ios: 'padding', android: undefined })}
+      keyboardVerticalOffset={0}
+    >
+      <ScrollView
+        contentContainerStyle={stylesLogin.contentContainer}
+        keyboardShouldPersistTaps="handled"
       >
-        {loading ? (
-          <ActivityIndicator color={colores.cuarto} />
-        ) : (
-          <Text style={stylesLogin.textoBotonIniciarSesión}>Iniciar sesión</Text>
-        )}
-      </TouchableOpacity>
-      <TouchableOpacity style={stylesLogin.botonRegistrarse} onPress={irARegistro}>
-        <Text style={stylesLogin.textoBotonRegistrarse}>Registrarse</Text>
-      </TouchableOpacity>
-    </View>
+        <View style={stylesLogin.content}>
+          <Image
+            source={require('../assets/logo-login.png')}
+            style={stylesLogin.logo}
+          />
+          <Text style={stylesLogin.titulo}>Iniciar sesión</Text>
+          <Text style={stylesLogin.subtitulo}>Ingresa tus credenciales para acceder</Text>
+          <View style={stylesLogin.filaInput}>
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  style={stylesLogin.input}
+                  placeholder="Correo electrónico"
+                  keyboardType="email-address"
+                  value={value}
+                  onChangeText={onChange}
+                  placeholderTextColor={colores.tercearioOscuro}
+                />
+              )}
+            />
+            {errors.email && <Text style={stylesLogin.error}>{errors.email.message}</Text>}
+          </View>
+          <View style={stylesLogin.filaInput}>
+            <Controller
+              control={control}
+              name="password"
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  style={stylesLogin.input}
+                  placeholder="Contraseña"
+                  secureTextEntry
+                  value={value}
+                  onChangeText={onChange}
+                  placeholderTextColor={colores.tercearioOscuro}
+                />
+              )}
+            />
+            {errors.password && <Text style={stylesLogin.error}>{errors.password.message}</Text>}
+          </View>
+          <TouchableOpacity style={stylesLogin.botonRecuperar}>
+            <Text style={stylesLogin.textoBotonRecuperar}>¿Olvidaste tu contraseña?</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={stylesLogin.botonIniciarSesion}
+            onPress={handleSubmit(onSubmit)}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={colores.cuarto} />
+            ) : (
+              <Text style={stylesLogin.textoBotonIniciarSesión}>Iniciar sesión</Text>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity style={stylesLogin.botonRegistrarse} onPress={irARegistro}>
+            <Text style={stylesLogin.textoBotonRegistrarse}>Registrarse</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 

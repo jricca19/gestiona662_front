@@ -4,6 +4,27 @@ import { colores } from './fuentesyColores';
 const { width, height } = Dimensions.get('window');
 
 export const stylesLogin = StyleSheet.create({
+    container: {
+        flex: 1,                          // ocupa toda la pantalla
+        backgroundColor: colores.terceario,
+    },
+    contentContainer: {
+        flexGrow: 1,                      // permite centrar vertical con ScrollView
+        justifyContent: 'center',
+        paddingHorizontal: width * 0.06,  // padding lateral
+    },
+    content: {
+        width: '100%',
+        maxWidth: 420,                    // evita que el formulario sea muy ancho en tablets
+        alignSelf: 'center',              // centra horizontalmente el bloque
+    },
+    // container: {
+    //     padding: width * 0.06,
+    //     justifyContent: 'center',
+    //     marginHorizontal: width * 0.08,
+    //     marginVertical: height * 0.15,
+    //     backgroundColor: colores.terceario
+    // },
     logo: {
         width: width * 0.3,
         height: width * 0.3,
@@ -56,13 +77,6 @@ export const stylesLogin = StyleSheet.create({
         marginBottom: height * 0.05,
         textAlign: 'center'
     },
-    container: {
-        padding: width * 0.06,
-        justifyContent: 'center',
-        marginHorizontal: width * 0.08,
-        marginVertical: height * 0.08,
-        backgroundColor: colores.terceario
-    },
     filaInput: {
         marginBottom: width * 0.02,
     },
@@ -77,34 +91,5 @@ export const stylesLogin = StyleSheet.create({
     error: {
         marginLeft: width * 0.02,
         color: colores.letrasError,
-    },
-    botonesIdiomas: {
-        flexDirection: 'row',
-        alignSelf: 'flex-end',
-        borderWidth: 1,
-        borderColor: colores.tercearioOscuro,
-        borderRadius: 16,
-        marginTop: height * 0.02,
-        marginRight: width * 0.03,
-        backgroundColor: colores.terceario,
-        overflow: 'hidden',
-    },
-    botonIdiomaElegido: {
-        paddingHorizontal: width * 0.02,
-        paddingVertical: height * 0.005,
-        backgroundColor: colores.primario,
-    },
-    botonIdiomaSinElegir: {
-        paddingHorizontal: width * 0.02,
-        paddingVertical: height * 0.005,
-        backgroundColor: colores.terceario,
-    },
-    textoBtnIdiomaElegido: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    textoBtnIdiomaSinElegir: {
-        color: '#333',
-        fontWeight: 'bold',
     },
 });
