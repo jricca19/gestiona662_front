@@ -5,26 +5,19 @@ const { width, height } = Dimensions.get('window');
 
 export const stylesLogin = StyleSheet.create({
     container: {
-        flex: 1,                          // ocupa toda la pantalla
+        flex: 1,
         backgroundColor: colores.terceario,
     },
     contentContainer: {
-        flexGrow: 1,                      // permite centrar vertical con ScrollView
-        justifyContent: 'center',
-        paddingHorizontal: width * 0.06,  // padding lateral
+        flexGrow: 1,
+        paddingHorizontal: width * 0.06,
+        paddingVertical: height * 0.1
     },
     content: {
         width: '100%',
-        maxWidth: 420,                    // evita que el formulario sea muy ancho en tablets
-        alignSelf: 'center',              // centra horizontalmente el bloque
+        maxWidth: 420,
+        alignSelf: 'center',
     },
-    // container: {
-    //     padding: width * 0.06,
-    //     justifyContent: 'center',
-    //     marginHorizontal: width * 0.08,
-    //     marginVertical: height * 0.15,
-    //     backgroundColor: colores.terceario
-    // },
     logo: {
         width: width * 0.3,
         height: width * 0.3,
