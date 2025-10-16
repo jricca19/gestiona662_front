@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { Picker } from '@react-native-picker/picker';
 import { estilosHome } from '../styles/stylesHome';
 import * as SecureStore from 'expo-secure-store';
+import { URL_BACKEND } from '@env';
 
 const HomeDirector = ({ navigation }) => {
     const { name, lastName } = useSelector(state => state.usuario);
@@ -21,7 +22,7 @@ const HomeDirector = ({ navigation }) => {
         try {
             const token = await SecureStore.getItemAsync('token')
             setLoading(true);
-            const response = await fetch('https://gestiona662-backend.vercel.app/v1/schools/user', {
+            const response = await fetch(`${URL_BACKEND}/v1/schools/user`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

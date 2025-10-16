@@ -7,6 +7,7 @@ import * as SecureStore from 'expo-secure-store';
 import { stylesPerfil } from '../styles/stylesPerfil';
 import FotoPerfilUploader from '../FotoPerfilUploader';
 import { Picker } from '@react-native-picker/picker';
+import { URL_BACKEND } from '@env';
 
 const PerfilDirector = ({ navigation }) => {
     const usuario = useSelector(state => state.usuario);
@@ -20,7 +21,7 @@ const PerfilDirector = ({ navigation }) => {
     useEffect(() => {
         const fetchPerfil = async () => {
             const token = await SecureStore.getItemAsync('token');
-            const resp = await fetch('https://gestiona662-backend.vercel.app/v1/users/profile', {
+            const resp = await fetch(`${URL_BACKEND}/v1/users/profile`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -45,7 +46,7 @@ const PerfilDirector = ({ navigation }) => {
         try {
             const token = await SecureStore.getItemAsync('token')
             setLoading(true);
-            const response = await fetch('https://gestiona662-backend.vercel.app/v1/schools/user', {
+            const response = await fetch(`${URL_BACKEND}/v1/schools/user`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

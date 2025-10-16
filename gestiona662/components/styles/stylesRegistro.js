@@ -4,19 +4,26 @@ import { colores, tamanos } from './fuentesyColores';
 const { width, height } = Dimensions.get('window');
 
 export const stylesRegistro = StyleSheet.create({
-  contenedor: {
-    padding: width * 0.08,
-    justifyContent: 'center',
-    marginBottom: height * 0.15,
+  container: {
+    flex: 1,
     backgroundColor: colores.terceario,
-    width: '100%',
   },
+  contentContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: width * 0.06,
+    paddingVertical: height * 0.05,
+  },
+  content: {
+    width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
+ },
   encabezado: {
     width: '100%',
     backgroundColor: colores.primario,
     paddingTop: 40,
     paddingBottom: 10,
-    alignItems: 'center',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },

@@ -154,15 +154,6 @@ const HomeMaestro = ({ navigation }) => {
                                     </View>
                                 </View>
                             </View>
-                            <TouchableOpacity
-                                style={estilosHome.btnNotificaciones}
-                                onPress={() => navigation.navigate('notificacionesPush')}
-                                activeOpacity={0.7}
-                            >
-                                <Text style={estilosHome.textoBtnNotificaciones}>
-                                    Probar Notificaciones Push
-                                </Text>
-                            </TouchableOpacity>
                         </>
                     )}
                 </View>

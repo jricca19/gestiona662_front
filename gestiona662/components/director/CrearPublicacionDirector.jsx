@@ -4,6 +4,7 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { stylesCrearPublicacion } from '../styles/stylesCrearPublicacion';
 import * as SecureStore from 'expo-secure-store';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { URL_BACKEND } from '@env';
 
 const grados = ['0', '1', '2', '3', '4', '5', '6'];
 
@@ -62,7 +63,7 @@ const CrearPublicacionDirector = ({ navigation }) => {
         try {
             const token = await SecureStore.getItemAsync('token');
 
-            const res = await fetch('https://gestiona662-backend.vercel.app/v1/publications', {
+            const res = await fetch(`${URL_BACKEND}/v1/publications`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -104,7 +105,7 @@ const CrearPublicacionDirector = ({ navigation }) => {
             try {
                 const token = await SecureStore.getItemAsync('token');
 
-                const res = await fetch('https://gestiona662-backend.vercel.app/v1/schools/user', {
+                const res = await fetch(`${URL_BACKEND}/v1/schools/user`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,

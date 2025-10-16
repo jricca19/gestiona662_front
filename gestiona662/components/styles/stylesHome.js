@@ -91,21 +91,6 @@ export const estilosHome = StyleSheet.create({
         fontWeight: '500',
         fontSize: tamanos.menu,
     },
-    btnNotificaciones: {
-        backgroundColor: colores.terceario,
-        paddingVertical: height * 0.015,
-        paddingHorizontal: width * 0.08,
-        borderRadius: 8,
-        marginTop: 40,
-        elevation: 0,
-        shadowColor: 'transparent',
-    },
-    textoBtnNotificaciones: {
-        color: colores.terceario,
-        fontWeight: 'bold',
-        fontSize: 20,
-        textAlign: 'center',
-    },
     error: {
         marginTop: height * 0.2,
         textAlign: 'center',
