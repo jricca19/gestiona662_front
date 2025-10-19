@@ -49,16 +49,12 @@ const DetallesPublicacion = ({ route, navigation }) => {
         setLoading(true)
         try {
             const token = await SecureStore.getItemAsync('token')
-            const appliesToAllDays = seleccionadosArray.length === fechas.length
             const body = {
                 publicationId: publicacion._id,
-                createdAt: new Date().toISOString(),
-                appliesToAllDays,
-                ...(appliesToAllDays ? {} : {
-                    postulationDays: seleccionadosArray.map(date => ({
-                        date: date.split('T')[0]
-                    }))
-                })
+                postulationDays: seleccionadosArray.map(date => ({
+                    date: date.split('T')[0]
+                }))
+
             }
             const res = await fetch(`${URL_BACKEND}/v1/postulations`, {
                 method: 'POST',
@@ -82,9 +78,7 @@ const DetallesPublicacion = ({ route, navigation }) => {
                                 : publicacion.shift
                 }
 
-                const diasSeleccionadosTexto = appliesToAllDays
-                    ? (publicacion.publicationDays || []).map(d => formatUTC(d.date, 'dd/MM/yyyy'))
-                    : seleccionadosArray.map(date => formatUTC(date, 'dd/MM/yyyy'))
+                const diasSeleccionadosTexto = seleccionadosArray.map(date => formatUTC(date, 'dd/MM/yyyy'))
 
                 navigation.reset({
                     index: 0,
