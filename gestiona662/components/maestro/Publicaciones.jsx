@@ -5,7 +5,7 @@ import { MaterialIcons, Ionicons, FontAwesome } from '@expo/vector-icons'
 import { colores } from '../styles/fuentesyColores'
 import { estilosPublicaciones } from '../styles/stylesPublicaciones'
 import ModalBusquedaPublicaciones from './ModalBusquedaPublicaciones'
-import { formatUTC } from '../../utils/formatUTC'
+import { formatUTC } from '../../utils/dates'
 import { URL_BACKEND } from '@env';
 import { useDispatch } from 'react-redux';
 import { establecerTotalPublicaciones } from '../../store/slices/publicacionesSlice';
@@ -165,7 +165,7 @@ const Publicaciones = ({ navigation }) => {
                         style={estilosPublicaciones.botonDetalles}
                         onPress={() => navigation.navigate('detallesPublicacion', { publicacion: item })}
                     >
-                        <Ionicons name="eye-outline" size={18} color="#fff" />
+                        <Ionicons name="eye-outline" size={18} color={colores.cuarto} />
                         <Text style={estilosPublicaciones.textoDetalles}>Ver Detalles</Text>
                     </TouchableOpacity>
                 </View>
@@ -177,7 +177,7 @@ const Publicaciones = ({ navigation }) => {
         <View style={{ flex: 1 }}>
             <View style={estilosPublicaciones.encabezado}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Ionicons name="arrow-back" size={28} color="#fff" />
+                    <Ionicons name="arrow-back" size={28} color={colores.cuarto} />
                 </TouchableOpacity>
                 <Text style={estilosPublicaciones.tituloEncabezado}>Búsqueda</Text>
                 <View style={{ width: 28 }} />

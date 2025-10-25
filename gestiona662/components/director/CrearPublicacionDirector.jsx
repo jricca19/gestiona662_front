@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, FlatList, Pressable, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal, FlatList, Pressable, Alert, Switch, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { stylesCrearPublicacion } from '../styles/stylesCrearPublicacion';
 import * as SecureStore from 'expo-secure-store';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { URL_BACKEND } from '@env';
+import { soloFecha, esFinDeSemana, contarDiasLaborales, formatUTC, fechaLocalFromISO, dateToISO } from '../../utils/dates';
+import { colores, tamanos } from '../styles/fuentesyColores';
 
 const grados = ['0', '1', '2', '3', '4', '5', '6'];
 
@@ -20,6 +22,7 @@ const CrearPublicacionDirector = ({ navigation }) => {
     const [ayuda, setAyuda] = useState('');
     const [modalEscuela, setModalEscuela] = useState(false);
     const [modalGrado, setModalGrado] = useState(false);
+    const [isType662, setIsType662] = useState(false);
 
     const handleCrearPublicacion = async () => {
         if (!escuelaSeleccionada || !grado || !desde || !hasta || !ayuda) {
@@ -29,10 +32,29 @@ const CrearPublicacionDirector = ({ navigation }) => {
 
         const desdeDate = new Date(desde);
         const hastaDate = new Date(hasta);
-        const diffMs = hastaDate - desdeDate;
-        const diffDias = diffMs / (1000 * 60 * 60 * 24);
-        if (diffDias > 2) {
-            Alert.alert('Rango de fechas inválido', 'No puede solicitar más de 3 días.');
+
+        if (hastaDate < desdeDate) {
+            Alert.alert('Rango de fechas inválido', 'La fecha de fin debe ser mayor o igual a la fecha de inicio.');
+            return;
+        }
+        const hoy = soloFecha(new Date());
+        if (soloFecha(desdeDate) < hoy) {
+            Alert.alert('Fecha inválida', 'La fecha de inicio no puede ser anterior a hoy.');
+            return;
+        }
+        if (esFinDeSemana(desdeDate) || esFinDeSemana(hastaDate)) {
+            console.log('Fecha de Inicio', desdeDate, 'es fin de semana:', esFinDeSemana(desdeDate));
+            console.log('Fecha de Fin', hastaDate, 'es fin de semana:', esFinDeSemana(hastaDate));
+            Alert.alert('Fecha inválida', 'La fecha de inicio o fin no puede ser un fin de semana.');
+            return;
+        }
+        const workingCount = contarDiasLaborales(desdeDate, hastaDate);
+        if (isType662 && workingCount > 3) {
+            Alert.alert('Rango de fechas inválido', 'No se pueden crear publicaciones para más de 3 días hábiles en suplencias tipo 662.');
+            return;
+        }
+        if (!isType662 && workingCount > 30) {
+            Alert.alert('Rango de fechas inválido', 'No se pueden crear publicaciones para más de 30 días hábiles en suplencias generales.');
             return;
         }
 
@@ -45,6 +67,7 @@ const CrearPublicacionDirector = ({ navigation }) => {
                 shiftValue = 'AFTERNOON';
                 break;
             case 'Tiempo completo':
+            case 'Tiempo Completo':
                 shiftValue = 'FULL_DAY';
                 break;
             default:
@@ -58,6 +81,7 @@ const CrearPublicacionDirector = ({ navigation }) => {
             endDate: hasta,
             shift: shiftValue,
             details: ayuda,
+            isType662,
         };
 
         try {
@@ -79,6 +103,7 @@ const CrearPublicacionDirector = ({ navigation }) => {
                 setHasta('');
                 setTurno('Matutino');
                 setAyuda('');
+                setIsType662(false);
                 Alert.alert(
                     '¡Éxito!',
                     'Publicación creada correctamente',
@@ -131,191 +156,213 @@ const CrearPublicacionDirector = ({ navigation }) => {
         <View style={stylesCrearPublicacion.container}>
             <View style={stylesCrearPublicacion.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={stylesCrearPublicacion.backButton}>
-                    <Ionicons name="arrow-back" size={28} color="#fff" />
+                    <Ionicons name="arrow-back" size={28} color={colores.cuarto} />
                 </TouchableOpacity>
                 <Text style={stylesCrearPublicacion.headerTitle}>Crear publicación</Text>
             </View>
-            <View style={stylesCrearPublicacion.form}>
-                <Text style={stylesCrearPublicacion.label}>Escuela</Text>
-                <TouchableOpacity style={stylesCrearPublicacion.inputRow} onPress={() => setModalEscuela(true)}>
-                    <TextInput
-                        style={stylesCrearPublicacion.input}
-                        placeholder="Seleccione escuela..."
-                        placeholderTextColor="#888"
-                        value={typeof escuelaSeleccionada === 'object' && escuelaSeleccionada !== null
-                            ? String(escuelaSeleccionada.schoolNumber)
-                            : ''
-                        }
-                        editable={false}
-                        pointerEvents="none"
-                    />
-                    <MaterialIcons name="arrow-drop-down" size={24} color="#888" style={stylesCrearPublicacion.iconInput} />
-                </TouchableOpacity>
-                <Modal visible={modalEscuela} transparent animationType="fade">
-                    <Pressable style={stylesCrearPublicacion.modalOverlay} onPress={() => setModalEscuela(false)}>
-                        <View style={stylesCrearPublicacion.modalBox}>
-                            <FlatList
-                                data={escuelas}
-                                keyExtractor={item => item._id}
-                                renderItem={({ item }) => (
-                                    <TouchableOpacity
-                                        style={stylesCrearPublicacion.modalItem}
-                                        onPress={() => {
-                                            setEscuelaSeleccionada(item);
-                                            setModalEscuela(false);
-                                        }}>
-                                        <Text>{item.schoolNumber}</Text>
-                                    </TouchableOpacity>
-                                )}
-                            />
-                        </View>
-                    </Pressable>
-                </Modal>
-
-                <Text style={stylesCrearPublicacion.label}>Grado</Text>
-                <TouchableOpacity style={stylesCrearPublicacion.inputRow} onPress={() => setModalGrado(true)}>
-                    <TextInput
-                        style={stylesCrearPublicacion.input}
-                        placeholder="Seleccione grado..."
-                        placeholderTextColor="#888"
-                        value={grado}
-                        editable={false}
-                        pointerEvents="none"
-                    />
-                    <MaterialIcons name="arrow-drop-down" size={24} color="#888" style={stylesCrearPublicacion.iconInput} />
-                </TouchableOpacity>
-
-                <Modal visible={modalGrado} transparent animationType="fade">
-                    <Pressable style={stylesCrearPublicacion.modalOverlay} onPress={() => setModalGrado(false)}>
-                        <View style={stylesCrearPublicacion.modalBox}>
-                            <FlatList
-                                data={grados}
-                                keyExtractor={item => item}
-                                renderItem={({ item }) => (
-                                    <TouchableOpacity
-                                        style={stylesCrearPublicacion.modalItem}
-                                        onPress={() => {
-                                            setGrado(item);
-                                            setModalGrado(false);
-                                        }}>
-                                        <Text>{item}</Text>
-                                    </TouchableOpacity>
-                                )}
-                            />
-                        </View>
-                    </Pressable>
-                </Modal>
-
-                <View style={stylesCrearPublicacion.row}>
-                    <View style={{ flex: 1, marginRight: 8 }}>
-                        <Text style={stylesCrearPublicacion.label}>Desde:</Text>
-                        <TouchableOpacity
-                            style={stylesCrearPublicacion.inputRow}
-                            onPress={() => setShowDesdePicker(true)}
-                        >
+            <KeyboardAvoidingView
+                style={stylesCrearPublicacion.container}
+                behavior={Platform.select({ ios: 'padding', android: undefined })}
+                keyboardVerticalOffset={0}
+            >
+                <ScrollView
+                    contentContainerStyle={stylesCrearPublicacion.contentContainer}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    <View style={stylesCrearPublicacion.form}>
+                        <Text style={stylesCrearPublicacion.label}>Escuela</Text>
+                        <TouchableOpacity style={stylesCrearPublicacion.inputRow} onPress={() => setModalEscuela(true)}>
                             <TextInput
                                 style={stylesCrearPublicacion.input}
-                                placeholder="Seleccione fecha..."
-                                value={desde}
+                                placeholder="Seleccione escuela..."
+                                placeholderTextColor={colores.tercearioOscuro}
+                                value={typeof escuelaSeleccionada === 'object' && escuelaSeleccionada !== null
+                                    ? String(escuelaSeleccionada.schoolNumber)
+                                    : ''
+                                }
                                 editable={false}
                                 pointerEvents="none"
                             />
-                            <MaterialIcons
-                                name="calendar-today"
-                                size={20}
-                                color="#03A9E0"
-                                style={stylesCrearPublicacion.iconInput}
-                            />
+                            <MaterialIcons name="arrow-drop-down" size={24} color={colores.tercearioOscuro} style={stylesCrearPublicacion.iconInput} />
                         </TouchableOpacity>
-                    </View>
+                        <Modal visible={modalEscuela} transparent animationType="fade">
+                            <Pressable style={stylesCrearPublicacion.modalOverlay} onPress={() => setModalEscuela(false)}>
+                                <View style={stylesCrearPublicacion.modalBox}>
+                                    <FlatList
+                                        data={escuelas}
+                                        keyExtractor={item => item._id}
+                                        renderItem={({ item }) => (
+                                            <TouchableOpacity
+                                                style={stylesCrearPublicacion.modalItem}
+                                                onPress={() => {
+                                                    setEscuelaSeleccionada(item);
+                                                    setModalEscuela(false);
+                                                }}>
+                                                <Text>{item.schoolNumber}</Text>
+                                            </TouchableOpacity>
+                                        )}
+                                    />
+                                </View>
+                            </Pressable>
+                        </Modal>
 
-                    <View style={{ flex: 1, marginLeft: 8 }}>
-                        <Text style={stylesCrearPublicacion.label}>Hasta:</Text>
-                        <TouchableOpacity
-                            style={stylesCrearPublicacion.inputRow}
-                            onPress={() => setShowHastaPicker(true)}
-                        >
+                        <Text style={stylesCrearPublicacion.label}>Grado</Text>
+                        <TouchableOpacity style={stylesCrearPublicacion.inputRow} onPress={() => setModalGrado(true)}>
                             <TextInput
                                 style={stylesCrearPublicacion.input}
-                                placeholder="Seleccione fecha..."
-                                value={hasta}
+                                placeholder="Seleccione grado..."
+                                placeholderTextColor={colores.tercearioOscuro}
+                                value={grado}
                                 editable={false}
                                 pointerEvents="none"
                             />
-                            <MaterialIcons
-                                name="calendar-today"
-                                size={20}
-                                color="#03A9E0"
-                                style={stylesCrearPublicacion.iconInput}
+                            <MaterialIcons name="arrow-drop-down" size={24} color={colores.tercearioOscuro} style={stylesCrearPublicacion.iconInput} />
+                        </TouchableOpacity>
+
+                        <Modal visible={modalGrado} transparent animationType="fade">
+                            <Pressable style={stylesCrearPublicacion.modalOverlay} onPress={() => setModalGrado(false)}>
+                                <View style={stylesCrearPublicacion.modalBox}>
+                                    <FlatList
+                                        data={grados}
+                                        keyExtractor={item => item}
+                                        renderItem={({ item }) => (
+                                            <TouchableOpacity
+                                                style={stylesCrearPublicacion.modalItem}
+                                                onPress={() => {
+                                                    setGrado(item);
+                                                    setModalGrado(false);
+                                                }}>
+                                                <Text>{item}</Text>
+                                            </TouchableOpacity>
+                                        )}
+                                    />
+                                </View>
+                            </Pressable>
+                        </Modal>
+
+                        <Text style={stylesCrearPublicacion.label}>¿Es suplencia 662?</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Switch
+                                value={isType662}
+                                onValueChange={setIsType662}
+                                thumbColor={isType662 ? colores.primario : colores.grisOscuro}
+                                trackColor={{ false: colores.grisOscuro, true: colores.primarioOscuro }}
+                                style={{ transform: [{ scaleX: 1.4 }, { scaleY: 1.4 }] }}
                             />
+                        </View>
+
+                        <View style={stylesCrearPublicacion.row}>
+                            <View style={{ flex: 1, marginRight: 8 }}>
+                                <Text style={stylesCrearPublicacion.label}>Desde:</Text>
+                                <TouchableOpacity
+                                    style={stylesCrearPublicacion.inputRow}
+                                    onPress={() => setShowDesdePicker(true)}
+                                >
+                                    <TextInput
+                                        style={stylesCrearPublicacion.input}
+                                        placeholder="Seleccione fecha..."
+                                        value={desde ? formatUTC(desde, 'dd/MM/yyyy') : ''}
+                                        editable={false}
+                                        pointerEvents="none"
+                                    />
+                                    <MaterialIcons
+                                        name="calendar-today"
+                                        size={25}
+                                        color={colores.primario}
+                                        style={stylesCrearPublicacion.iconInput}
+                                    />
+                                </TouchableOpacity>
+                            </View>
+
+                            <View style={{ flex: 1, marginLeft: 8 }}>
+                                <Text style={stylesCrearPublicacion.label}>Hasta:</Text>
+                                <TouchableOpacity
+                                    style={stylesCrearPublicacion.inputRow}
+                                    onPress={() => setShowHastaPicker(true)}
+                                >
+                                    <TextInput
+                                        style={stylesCrearPublicacion.input}
+                                        placeholder="Seleccione fecha..."
+                                        value={hasta ? formatUTC(hasta, 'dd/MM/yyyy') : ''}
+                                        editable={false}
+                                        pointerEvents="none"
+                                    />
+                                    <MaterialIcons
+                                        name="calendar-today"
+                                        size={25}
+                                        color={colores.primario}
+                                        style={stylesCrearPublicacion.iconInput}
+                                    />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {showDesdePicker && (
+                            <DateTimePicker
+                                value={desde ? fechaLocalFromISO(desde) : new Date()}
+                                mode="date"
+                                display="default"
+                                minimumDate={new Date()}
+                                onChange={(event, selectedDate) => {
+                                    setShowDesdePicker(false);
+                                    if (selectedDate) {
+                                        setDesde(dateToISO(selectedDate));
+                                    }
+                                }}
+                            />
+                        )}
+
+                        {showHastaPicker && (
+                            <DateTimePicker
+                                value={hasta ? fechaLocalFromISO(hasta) : new Date()}
+                                mode="date"
+                                display="default"
+                                minimumDate={new Date()}
+                                onChange={(event, selectedDate) => {
+                                    setShowHastaPicker(false);
+                                    if (selectedDate) {
+                                        setHasta(dateToISO(selectedDate));
+                                    }
+                                }}
+                            />
+                        )}
+
+                        <Text style={stylesCrearPublicacion.label}>Turno:</Text>
+                        <View style={stylesCrearPublicacion.turnoRow}>
+                            {['Matutino', 'Vespertino', 'Tiempo Completo'].map((opcion) => (
+                                <TouchableOpacity
+                                    key={opcion}
+                                    style={stylesCrearPublicacion.turnoOpcion}
+                                    onPress={() => setTurno(opcion)}
+                                >
+                                    <View style={[
+                                        stylesCrearPublicacion.radio,
+                                        turno === opcion && stylesCrearPublicacion.radioSelected
+                                    ]} />
+                                    <Text style={stylesCrearPublicacion.turnoText}>{opcion}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        <Text style={stylesCrearPublicacion.label}>Ayuda para el suplente:</Text>
+                        <TextInput
+                            style={stylesCrearPublicacion.textArea}
+                            placeholder="Ingrese detalle..."
+                            placeholderTextColor={colores.tercearioOscuro}
+                            value={ayuda}
+                            onChangeText={setAyuda}
+                            multiline
+                            numberOfLines={4}
+                        />
+
+                        <TouchableOpacity style={stylesCrearPublicacion.boton}
+                            onPress={handleCrearPublicacion}>
+                            <Text style={stylesCrearPublicacion.botonTexto}>Crear publicación</Text>
                         </TouchableOpacity>
                     </View>
-                </View>
-
-                {showDesdePicker && (
-                    <DateTimePicker
-                        value={new Date()}
-                        mode="date"
-                        display="default"
-                        onChange={(event, selectedDate) => {
-                            setShowDesdePicker(false);
-                            if (selectedDate) {
-                                const fecha = selectedDate.toISOString().split('T')[0];
-                                setDesde(fecha);
-                            }
-                        }}
-                    />
-                )}
-
-                {showHastaPicker && (
-                    <DateTimePicker
-                        value={new Date()}
-                        mode="date"
-                        display="default"
-                        onChange={(event, selectedDate) => {
-                            setShowHastaPicker(false);
-                            if (selectedDate) {
-                                const fecha = selectedDate.toISOString().split('T')[0];
-                                setHasta(fecha);
-                            }
-                        }}
-                    />
-                )}
-
-                <Text style={stylesCrearPublicacion.label}>Turno:</Text>
-                <View style={stylesCrearPublicacion.turnoRow}>
-                    {['Matutino', 'Vespertino', 'Tiempo Completo'].map((opcion) => (
-                        <TouchableOpacity
-                            key={opcion}
-                            style={stylesCrearPublicacion.turnoOpcion}
-                            onPress={() => setTurno(opcion)}
-                        >
-                            <View style={[
-                                stylesCrearPublicacion.radio,
-                                turno === opcion && stylesCrearPublicacion.radioSelected
-                            ]} />
-                            <Text style={stylesCrearPublicacion.turnoText}>{opcion}</Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-
-                <Text style={stylesCrearPublicacion.label}>Ayuda para el suplente:</Text>
-                <TextInput
-                    style={stylesCrearPublicacion.textArea}
-                    placeholder="Ingrese detalle..."
-                    placeholderTextColor="#888"
-                    value={ayuda}
-                    onChangeText={setAyuda}
-                    multiline
-                    numberOfLines={4}
-                />
-
-                <TouchableOpacity style={stylesCrearPublicacion.boton}
-                    onPress={handleCrearPublicacion}>
-                    <Text style={stylesCrearPublicacion.botonTexto}>Crear publicación</Text>
-                </TouchableOpacity>
-            </View>
-        </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </View >
     );
 };
 

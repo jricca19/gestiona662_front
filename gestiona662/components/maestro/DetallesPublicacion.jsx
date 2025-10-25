@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { View, Text, TouchableOpacity, ScrollView, Dimensions } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { estilosDetalles } from '../styles/stylesDetallesPublicacion'
-import { formatUTC } from '../../utils/formatUTC'
+import { formatUTC } from '../../utils/dates'
 import * as SecureStore from 'expo-secure-store'
 import { URL_BACKEND } from '@env';
 import { Snackbar } from 'react-native-paper';
@@ -107,7 +107,7 @@ const DetallesPublicacion = ({ route, navigation }) => {
             <View style={estilosDetalles.contenedor}>
                 <View style={estilosDetalles.encabezado}>
                     <TouchableOpacity onPress={() => navigation.goBack()}>
-                        <Ionicons name="arrow-back" size={28} color="#fff" />
+                        <Ionicons name="arrow-back" size={28} color={colores.cuarto} />
                     </TouchableOpacity>
                     <Text style={estilosDetalles.tituloEncabezado}>Publicación</Text>
                     <View style={{ width: 28 }} />

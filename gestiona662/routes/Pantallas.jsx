@@ -34,6 +34,7 @@ function MaestroTabs() {
           headerShown: false,
           tabBarActiveTintColor: '#009BDB',
           tabBarInactiveTintColor: '#333333',
+          tabBarHideOnKeyboard: true,
           tabBarStyle: { 
             height: TAB_BAR_HEIGHT,
             backgroundColor: '#FAFAFA',
@@ -64,6 +65,7 @@ function DirectorTabs() {
           headerShown: false,
           tabBarActiveTintColor: '#009BDB',
           tabBarInactiveTintColor: '#333333',
+          tabBarHideOnKeyboard: true,
           tabBarStyle: { 
             height: TAB_BAR_HEIGHT,
             backgroundColor: '#FAFAFA',

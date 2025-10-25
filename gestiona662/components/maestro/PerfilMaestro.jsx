@@ -173,7 +173,7 @@ const PerfilMaestro = ({ navigation }) => {
             <View style={{ flex: 1 }}>
                 <View style={stylesPerfil.encabezado}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={stylesPerfil.botonAtras}>
-                        <Ionicons name="arrow-back" size={28} color="#fff" />
+                        <Ionicons name="arrow-back" size={28} color={colores.cuarto} />
                     </TouchableOpacity>
                     <Text style={stylesPerfil.textoEncabezado}>Perfil</Text>
                 </View>

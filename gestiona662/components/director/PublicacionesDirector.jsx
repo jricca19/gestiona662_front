@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import * as SecureStore from 'expo-secure-store';
 import { colores } from '../styles/fuentesyColores';
-import { formatUTC } from '../../utils/formatUTC';
+import { formatUTC } from '../../utils/dates';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { URL_BACKEND } from '@env';
 
@@ -204,7 +204,7 @@ const PublicacionesDirector = ({ navigation, route }) => {
             <View style={estilosPublicacionesDirector.tarjeta} key={item._id}>
                 <View style={estilosPublicacionesDirector.encabezadoTarjeta}>
                     <View style={estilosPublicacionesDirector.filaTarjeta}>
-                        <MaterialIcons name="show-chart" size={18} color="#03A9E0" />
+                        <MaterialIcons name="show-chart" size={18} color={colores.primario} />
                         <Text style={estilosPublicacionesDirector.textoTarjeta}>
                             {item.grade === 0 ? 'Nivel Inicial' : `${item.grade}°`}
                         </Text>

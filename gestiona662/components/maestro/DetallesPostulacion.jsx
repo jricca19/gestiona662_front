@@ -1,7 +1,8 @@
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { estilosDetalles } from '../styles/stylesDetallesPostulacion'
-import { formatUTC } from '../../utils/formatUTC'
+import { formatUTC } from '../../utils/dates'
+import { colores } from '../styles/fuentesyColores'
 
 const shiftLabels = {
     MORNING: { label: 'Mañana', hours: '08:00 a 12:00' },
@@ -30,7 +31,7 @@ const DetallesPostulacion = ({ navigation, route }) => {
         <View style={estilosDetalles.contenedor}>
             <View style={estilosDetalles.encabezado}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Ionicons name="arrow-back" size={28} color="#fff" />
+                    <Ionicons name="arrow-back" size={28} color={colores.cuarto} />
                 </TouchableOpacity>
                 <Text style={estilosDetalles.tituloEncabezado}>Detalles</Text>
                 <View style={{ width: 28 }} />

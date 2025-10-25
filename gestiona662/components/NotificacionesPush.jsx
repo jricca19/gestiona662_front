@@ -89,7 +89,7 @@ export default function NotificacionesPush({ navigation }) {
     <View style={{ flex: 1 }}>
       <View style={styles.encabezado}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={28} color="#fff" />
+          <Ionicons name="arrow-back" size={28} color={colores.cuarto} />
         </TouchableOpacity>
         <Text style={styles.tituloEncabezado}>Notificaciones</Text>
         <View style={{ width: 28 }} />
@@ -97,7 +97,7 @@ export default function NotificacionesPush({ navigation }) {
       <Text style={styles.title}>Token para pruebas desde Postman</Text>
       <Text selectable style={styles.token}>{expoPushToken}</Text>
       <TouchableOpacity style={styles.botonCopiar} onPress={copiarAlPortapapeles}>
-        <Ionicons name="copy-outline" size={22} color="#fff" />
+        <Ionicons name="copy-outline" size={22} color={colores.cuarto} />
         <Text style={styles.textoBoton}>Copiar token</Text>
       </TouchableOpacity>
       {copiado && (

@@ -8,6 +8,12 @@ export const stylesCrearPublicacion = StyleSheet.create({
     flex: 1,
     backgroundColor: colores.fondo,
   },
+  contentContainer: {
+    flexGrow: 1,
+    justifyContent: 'flex-start',
+    paddingHorizontal: width * 0.04,
+    paddingVertical: height * 0.02,
+  },
   header: {
     width: '100%',
     backgroundColor: colores.primario,
@@ -25,9 +31,9 @@ export const stylesCrearPublicacion = StyleSheet.create({
     fontWeight: 'bold',
   },
   form: {
-    flex: 1,
-    paddingHorizontal: width * 0.05,
-    paddingTop: height * 0.06,
+    width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
   },
   label: {
     fontWeight: 'bold',

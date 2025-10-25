@@ -4,7 +4,7 @@ import * as SecureStore from 'expo-secure-store'
 import { Ionicons } from '@expo/vector-icons'
 import { estilosPostulaciones } from '../styles/stylesPostulacionesMaestro'
 import { colores } from '../styles/fuentesyColores'
-import { formatUTC } from '../../utils/formatUTC'
+import { formatUTC } from '../../utils/dates'
 import { URL_BACKEND } from '@env';
 import EfectoSlide from '../EfectoSlide';
 import DeslizarParaEliminar from '../DeslizarParaEliminar';
@@ -192,7 +192,7 @@ const PostulacionesMaestro = ({ navigation, route }) => {
         <View style={{ flex: 1 }}>
             <View style={estilosPostulaciones.encabezado}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Ionicons name="arrow-back" size={28} color="#fff" />
+                    <Ionicons name="arrow-back" size={28} color={colores.cuarto} />
                 </TouchableOpacity>
                 <Text style={estilosPostulaciones.tituloEncabezado}>Postulaciones</Text>
                 <View style={{ width: 28 }} />

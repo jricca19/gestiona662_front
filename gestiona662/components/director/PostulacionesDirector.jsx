@@ -67,7 +67,7 @@ const PostulacionesPublicacion = ({ navigation, route }) => {
         <View style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Ionicons name="arrow-back" size={28} color="#fff" />
+                    <Ionicons name="arrow-back" size={28} color={colores.cuarto} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Publicación</Text>
                 <View style={{ width: 28 }} />

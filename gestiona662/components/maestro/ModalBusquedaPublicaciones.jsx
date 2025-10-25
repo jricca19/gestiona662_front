@@ -6,6 +6,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { estilosModalBusqueda } from '../styles/stylesModalBusquedaPublicaciones';
 import { URL_BACKEND } from '@env';
+import { colores } from '../styles/fuentesyColores';
 
 const ModalBusquedaPublicaciones = ({ visible, onClose, onApplyFilters, onClearFilters }) => {
     const [departamentoSeleccionado, setDepartamentoSeleccionado] = useState('');
@@ -97,7 +98,7 @@ const ModalBusquedaPublicaciones = ({ visible, onClose, onApplyFilters, onClearF
                     <View style={estilosModalBusqueda.header}>
                         <Text style={estilosModalBusqueda.tituloModal}>Filtros</Text>
                         <TouchableOpacity onPress={onClose} style={estilosModalBusqueda.botonCerrar}>
-                            <MaterialIcons name="close" size={24} color="#fff" />
+                            <MaterialIcons name="close" size={24} color={colores.cuarto} />
                         </TouchableOpacity>
                     </View>
 

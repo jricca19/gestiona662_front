@@ -5,7 +5,7 @@ export const colores = {
     secundarioClaro: '#E4F7FF',
     secundarioMasClaro: '#CDEEFB',
     terceario: '#F2F3F4',
-    tercearioOscuro: '#B4B4B4',
+    tercearioOscuro: '#949494ff',
     cuarto: '#FAFAFA',
     quinto: '#333333',
     sexto: '#0079A1',
