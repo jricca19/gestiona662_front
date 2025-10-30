@@ -25,8 +25,7 @@ export function soloFecha(fecha) {
 }
 
 export function esFinDeSemana(d) {
-    const day = d.getUTCDay();
-    console.log('Día de la semana (UTC):', day);
+    const day = d.getDay();
     return day === 0 || day === 6;
 };
 
@@ -34,16 +33,34 @@ export function contarDiasLaborales(start, end) {
     const s = new Date(start);
     const e = new Date(end);
     let count = 0;
-    for (let d = new Date(s); d <= e; d.setUTCDate(d.getUTCDate() + 1)) {
-        const day = d.getUTCDay();
+    for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
+        const day = d.getDay();
         if (day >= 1 && day <= 5) count++;
     }
     return count;
 };
 
-export function dateToISO(date) {
+export function dateToISO(d) {
+    if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+    const date = new Date(d);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+}
+
+export function formatFechaDDMMYYYY(dateStr) {
+    // Admite "YYYY-MM-DD" o ISO
+    let year, month, day;
+    if (dateStr.includes('T')) {
+        // ISO string
+        const d = new Date(dateStr);
+        year = d.getFullYear();
+        month = String(d.getMonth() + 1).padStart(2, '0');
+        day = String(d.getDate()).padStart(2, '0');
+    } else {
+        // "YYYY-MM-DD"
+        [year, month, day] = dateStr.split('-');
+    }
+    return `${day}/${month}/${year}`;
 }

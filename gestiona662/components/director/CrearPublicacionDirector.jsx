@@ -5,7 +5,7 @@ import { stylesCrearPublicacion } from '../styles/stylesCrearPublicacion';
 import * as SecureStore from 'expo-secure-store';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { URL_BACKEND } from '@env';
-import { soloFecha, esFinDeSemana, contarDiasLaborales, formatUTC, fechaLocalFromISO, dateToISO } from '../../utils/dates';
+import { esFinDeSemana, contarDiasLaborales, formatUTC, fechaLocalFromISO, dateToISO, formatFechaDDMMYYYY } from '../../utils/dates';
 import { colores, tamanos } from '../styles/fuentesyColores';
 
 const grados = ['0', '1', '2', '3', '4', '5', '6'];
@@ -30,21 +30,20 @@ const CrearPublicacionDirector = ({ navigation }) => {
             return;
         }
 
-        const desdeDate = new Date(desde);
-        const hastaDate = new Date(hasta);
+        const desdeDate = fechaLocalFromISO(desde);
+        const hastaDate = fechaLocalFromISO(hasta);
 
         if (hastaDate < desdeDate) {
             Alert.alert('Rango de fechas inválido', 'La fecha de fin debe ser mayor o igual a la fecha de inicio.');
             return;
         }
-        const hoy = soloFecha(new Date());
-        if (soloFecha(desdeDate) < hoy) {
+        const hoy = new Date();
+        hoy.setHours(0,0,0,0);
+        if (desdeDate < hoy) {
             Alert.alert('Fecha inválida', 'La fecha de inicio no puede ser anterior a hoy.');
             return;
         }
         if (esFinDeSemana(desdeDate) || esFinDeSemana(hastaDate)) {
-            console.log('Fecha de Inicio', desdeDate, 'es fin de semana:', esFinDeSemana(desdeDate));
-            console.log('Fecha de Fin', hastaDate, 'es fin de semana:', esFinDeSemana(hastaDate));
             Alert.alert('Fecha inválida', 'La fecha de inicio o fin no puede ser un fin de semana.');
             return;
         }
@@ -261,7 +260,7 @@ const CrearPublicacionDirector = ({ navigation }) => {
                                     <TextInput
                                         style={stylesCrearPublicacion.input}
                                         placeholder="Seleccione fecha..."
-                                        value={desde ? formatUTC(desde, 'dd/MM/yyyy') : ''}
+                                        value={desde ? formatFechaDDMMYYYY(desde) : ''}
                                         editable={false}
                                         pointerEvents="none"
                                     />
@@ -283,7 +282,7 @@ const CrearPublicacionDirector = ({ navigation }) => {
                                     <TextInput
                                         style={stylesCrearPublicacion.input}
                                         placeholder="Seleccione fecha..."
-                                        value={hasta ? formatUTC(hasta, 'dd/MM/yyyy') : ''}
+                                        value={hasta ? formatFechaDDMMYYYY(hasta) : ''}
                                         editable={false}
                                         pointerEvents="none"
                                     />

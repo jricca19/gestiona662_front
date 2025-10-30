@@ -271,10 +271,11 @@ const PublicacionesDirector = ({ navigation, route }) => {
                             style={estilosPublicacionesDirector.selectEscuelasDirector}
                             dropdownIconColor="white"
                         >
+                            <Picker.Item label="Seleccione escuela..." value="" />
                             {escuelas.map((escuela) => (
                                 <Picker.Item
                                     key={escuela._id}
-                                    label={escuela.schoolNumber}
+                                    label={String(escuela.schoolNumber)}
                                     value={escuela._id}
                                 />
                             ))}

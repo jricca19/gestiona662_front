@@ -17,7 +17,6 @@ import DetallesPostulacion from '../components/maestro/DetallesPostulacion'
 import { Ionicons } from '@expo/vector-icons'
 import { useSelector } from 'react-redux'
 import { Dimensions } from 'react-native'
-import Observador from '../components/Observador'
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -27,8 +26,6 @@ const TAB_BAR_HEIGHT = height * 0.07;
 
 function MaestroTabs() {
   return (
-    <>
-      <Observador />
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
@@ -52,14 +49,11 @@ function MaestroTabs() {
         <Tab.Screen name="misPostulaciones" component={PostulacionesMaestro} options={{ title: 'Mis Postulaciones' }} />
         <Tab.Screen name="perfilMaestro" component={PerfilMaestro} options={{ title: 'Perfil' }} />
       </Tab.Navigator>
-    </>
   );
 }
 
 function DirectorTabs() {
   return (
-    <>
-      <Observador />
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
@@ -83,7 +77,6 @@ function DirectorTabs() {
         <Tab.Screen name="misPublicaciones" component={PublicacionesDirector} options={{ title: 'Mis Publicaciones' }} />
         <Tab.Screen name="perfilDirector" component={PerfilDirector} options={{ title: 'Perfil' }} />
       </Tab.Navigator>
-    </>
   );
 }
 
