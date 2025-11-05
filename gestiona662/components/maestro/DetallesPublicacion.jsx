@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { View, Text, TouchableOpacity, ScrollView, Dimensions } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { estilosDetalles } from '../styles/stylesDetallesPublicacion'
-import { formatUTC } from '../../utils/dates'
+import { formatoFecha } from '../../utils/dates'
 import * as SecureStore from 'expo-secure-store'
 import { URL_BACKEND } from '@env';
-import { Snackbar } from 'react-native-paper';
+import AppSnackbar from '../AppSnackbar';
 import { colores } from '../styles/fuentesyColores'
 import BotonPulsaciones from '../BotonPulsaciones';
 
@@ -17,7 +17,7 @@ const DetallesPublicacion = ({ route, navigation }) => {
     const fechas = (publicacion.publicationDays || [])
         .filter(d => d.status === 'AVAILABLE')
         .map(d => ({
-            label: formatUTC(d.date, 'EEEE dd'),
+            label: formatoFecha(d.date, 'EEEE dd'),
             value: d.date
         }))
 
@@ -78,7 +78,7 @@ const DetallesPublicacion = ({ route, navigation }) => {
                                 : publicacion.shift
                 }
 
-                const diasSeleccionadosTexto = seleccionadosArray.map(date => formatUTC(date, 'dd/MM/yyyy'))
+                const diasSeleccionadosTexto = seleccionadosArray.map(date => formatoFecha(date, 'dd/MM/yyyy'))
 
                 navigation.reset({
                     index: 0,
@@ -141,7 +141,7 @@ const DetallesPublicacion = ({ route, navigation }) => {
                         <View style={estilosDetalles.tarjetaFechas}>
                             <Text style={estilosDetalles.etiquetaTarjeta}>Selección de días</Text>
                             <Text style={estilosDetalles.tituloMes}>
-                                {formatUTC(fechas[0].value, 'MMMM - yyyy')}
+                                {formatoFecha(fechas[0].value, 'MMMM - yyyy')}
                             </Text>
                             {fechas.map(f => (
                                 <View key={f.value} style={estilosDetalles.filaDia}>
@@ -172,22 +172,14 @@ const DetallesPublicacion = ({ route, navigation }) => {
                     )}
                 </ScrollView>
             </View>
-            <Snackbar
+            <AppSnackbar
                 visible={snackbarVisible}
+                message={snackbarMessage}
+                type="error"
                 onDismiss={() => setSnackbarVisible(false)}
                 duration={4000}
-                style={{
-                    backgroundColor: colores.cartelError,
-                    marginBottom: height * 0.1,
-                }}
-            >
-                <Text style={{
-                    color: colores.letrasError,
-                    fontWeight: 'bold'
-                }}>
-                    {snackbarMessage}
-                </Text>
-            </Snackbar>
+                bottomOffset={height * 0.1}
+            />
         </>
     )
 }

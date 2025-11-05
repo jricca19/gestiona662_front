@@ -5,7 +5,7 @@ import { MaterialIcons, Ionicons, FontAwesome } from '@expo/vector-icons'
 import { colores } from '../styles/fuentesyColores'
 import { estilosPublicaciones } from '../styles/stylesPublicaciones'
 import ModalBusquedaPublicaciones from './ModalBusquedaPublicaciones'
-import { formatUTC } from '../../utils/dates'
+import { formatoFecha } from '../../utils/dates'
 import { URL_BACKEND } from '@env';
 import { useDispatch } from 'react-redux';
 import { establecerTotalPublicaciones } from '../../store/slices/publicacionesSlice';
@@ -124,9 +124,9 @@ const Publicaciones = ({ navigation }) => {
         let fechaFormateada = '';
         if (item.startDate && item.endDate) {
             fechaFormateada =
-                formatUTC(item.startDate, 'dd') +
+                formatoFecha(item.startDate, 'dd') +
                 '-' +
-                formatUTC(item.endDate, 'dd MMM yyyy');
+                formatoFecha(item.endDate, 'dd MMM yyyy');
         }
 
         return (

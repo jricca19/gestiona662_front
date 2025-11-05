@@ -1,12 +1,13 @@
-import { View, Text, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native'
+import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, Dimensions, Image } from 'react-native'
 import { estilosPublicacionesDirector } from '../styles/stylesPublicacionesDirector';
 import { useState, useEffect, useCallback } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import * as SecureStore from 'expo-secure-store';
 import { colores } from '../styles/fuentesyColores';
-import { formatUTC } from '../../utils/dates';
+import { formatoFecha } from '../../utils/dates';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { URL_BACKEND } from '@env';
+import AppSnackbar from '../AppSnackbar';
 
 const PublicacionesDirector = ({ navigation, route }) => {
     const [datos, setDatos] = useState([]);
@@ -18,6 +19,8 @@ const PublicacionesDirector = ({ navigation, route }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
+    const [snackbarVisible, setSnackbarVisible] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
 
     const fetchPublicaciones = useCallback(async (pageToLoad = 1, refreshing = false) => {
         if (loading) return;
@@ -27,27 +30,28 @@ const PublicacionesDirector = ({ navigation, route }) => {
         try {
             const token = await SecureStore.getItemAsync('token');
 
-            const res = await fetch(`${URL_BACKEND}/v1/publications/school`, {
-                method: 'POST',
+            const res = await fetch(`${URL_BACKEND}/v1/publications/school/${escuelaSeleccionada}`, {
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    schoolId: escuelaSeleccionada
-                })
+                }
             });
 
             const text = await res.text();
 
             if (res.status === 200 && res.headers.get('content-type')?.includes('application/json')) {
                 const data = JSON.parse(text);
-                setTotal(data.total ?? 0);
-                if (refreshing) {
-                    setDatos(data ?? []);
-                } else {
-                    setDatos(prev => [...prev, ...(data ?? [])]);
+                // El backend devuelve un array de publicaciones con las postulaciones embebidas
+                const publicaciones = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
+                setTotal(publicaciones.length);
+                setDatos(publicaciones);
+                // Construir el mapa de postulaciones a partir de la respuesta
+                const nuevoMapa = {};
+                for (const pub of publicaciones) {
+                    nuevoMapa[pub._id] = Array.isArray(pub.postulations) ? pub.postulations : [];
                 }
+                setPostulaciones(nuevoMapa);
             } else {
                 setError('Error inesperado al obtener publicaciones');
             }
@@ -56,33 +60,6 @@ const PublicacionesDirector = ({ navigation, route }) => {
         }
         setLoading(false);
     }, [loading, datos.length, total, escuelaSeleccionada]);
-
-    const cargarPostulaciones = async (publicationId) => {
-        try {
-            if (postulaciones[publicationId]) return;
-
-            const token = await SecureStore.getItemAsync('token');
-            const res = await fetch(`${URL_BACKEND}/v1/postulations/publication/${publicationId}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setPostulaciones(prev => ({ ...prev, [publicationId]: data }));
-            }
-            else if (res.status === 404) {
-                setPostulaciones(prev => ({ ...prev, [publicationId]: [] }));
-            }
-            else {
-                throw new error(`Error al cargar postulaciones de ${publicationId}:`);
-            }
-        } catch (err) {
-            console.error(`Error cargando postulaciones de ${publicationId}:`, err);
-        }
-    };
 
     useEffect(() => {
         if (escuelaSeleccionada) {
@@ -129,6 +106,17 @@ const PublicacionesDirector = ({ navigation, route }) => {
         }
     }, [route?.params?.refresh]);
 
+    // Mostrar snackbar de "flash" si viene desde otra pantalla
+    useEffect(() => {
+        const msg = route?.params?.flashMessage;
+        if (msg) {
+            setSnackbarMessage(msg);
+            setSnackbarVisible(true);
+            // limpiar para que no vuelva a mostrarse
+            navigation.setParams({ flashMessage: undefined });
+        }
+    }, [route?.params?.flashMessage]);
+
     const handleLoadMore = () => {
         if (loading) return;
         if (datos.length >= total) return;
@@ -143,17 +131,14 @@ const PublicacionesDirector = ({ navigation, route }) => {
         fetchPublicaciones(1, true).then(() => setRefreshing(false));
     };
 
+    // Sincronizar el mapa de postulaciones desde los datos (evita llamadas por publicación)
     useEffect(() => {
-        const cargarTodasLasPostulaciones = async () => {
+        if (Array.isArray(datos)) {
+            const map = {};
             for (const pub of datos) {
-                if (!postulaciones[pub._id]) {
-                    await cargarPostulaciones(pub._id);
-                }
+                map[pub._id] = Array.isArray(pub.postulations) ? pub.postulations : [];
             }
-        };
-
-        if (datos.length > 0) {
-            cargarTodasLasPostulaciones();
+            setPostulaciones(map);
         }
     }, [datos]);
 
@@ -189,9 +174,9 @@ const PublicacionesDirector = ({ navigation, route }) => {
         let fechaFormateada = '';
         if (item.startDate && item.endDate) {
             fechaFormateada =
-                formatUTC(item.startDate, 'dd') +
+                formatoFecha(item.startDate, 'dd') +
                 '-' +
-                formatUTC(item.endDate, 'dd MMM yyyy');
+                formatoFecha(item.endDate, 'dd MMM yyyy');
         }
 
         const estado = estados[item.status] || {
@@ -224,26 +209,29 @@ const PublicacionesDirector = ({ navigation, route }) => {
                 <View style={estilosPublicacionesDirector.filaTarjeta}>
                     <MaterialIcons name="event" size={18} color={colores.primario} />
                     <Text style={estilosPublicacionesDirector.textoTarjeta}>
-                        {postulaciones[item._id]?.length || 0} postulados
+                        {Array.isArray(item.postulations)
+                            ? item.postulations.length
+                            : (postulaciones[item._id]?.length || 0)} postulados
                     </Text>
                 </View>
                 <View style={estilosPublicacionesDirector.acciones}>
                     <TouchableOpacity
                         style={estilosPublicacionesDirector.iconButton}
                         onPress={() => {
-                            const postulacionesArray = Array.isArray(postulaciones[item._id]) ? postulaciones[item._id] : [];
+                            const postulacionesArray = Array.isArray(item.postulations)
+                                ? item.postulations
+                                : (Array.isArray(postulaciones[item._id]) ? postulaciones[item._id] : []);
                             navigation.navigate('postulacionesPublicacion', { postulaciones: postulacionesArray, publicacion: item });
                         }}
-                        disabled={!Array.isArray(postulaciones[item._id]) || postulaciones[item._id].length === 0}
+                        disabled={!(Array.isArray(item.postulations) ? item.postulations.length > 0 : (Array.isArray(postulaciones[item._id]) && postulaciones[item._id].length > 0))}
                     >
                         <MaterialCommunityIcons
                             name="handshake"
                             size={38}
-                            color={
-                                Array.isArray(postulaciones[item._id]) && postulaciones[item._id].length > 0
+                            color={(Array.isArray(item.postulations) && item.postulations.length > 0) ||
+                                (Array.isArray(postulaciones[item._id]) && postulaciones[item._id].length > 0)
                                     ? "#117396"
-                                    : "#B0BEC5"
-                            }
+                                    : "#B0BEC5"}
                             style={estilosPublicacionesDirector.iconShadow}
                         />
                     </TouchableOpacity>
@@ -290,21 +278,27 @@ const PublicacionesDirector = ({ navigation, route }) => {
                         <Text style={estilosPublicacionesDirector.titulo}>Publicaciones</Text>
                     </View>
                     <FlatList
-                        data={datos.filter(item => Array.isArray(postulaciones[item._id]))}
+                        data={datos}
                         renderItem={renderItem}
                         keyExtractor={item => item._id}
-                        onEndReached={handleLoadMore}
-                        onEndReachedThreshold={0.5}
+                        ListEmptyComponent={
+                            (!loading && !refreshing) ? (
+                                <View style={{ alignItems: 'center', marginTop: 32, paddingHorizontal: 24 }}>
+                                    <Text style={{ textAlign: 'center', color: colores.quinto, marginBottom: 16 }}>
+                                        No existen publicaciones activas para esta escuela en este momento. Intenta más tarde o prueba con otros filtros de búsqueda.
+                                    </Text>
+                                    <Image
+                                        source={require('../../assets/sin-resultados.png')}
+                                        style={{ width: 260, height: 200 }}
+                                        resizeMode="contain"
+                                    />
+                                </View>
+                            ) : null
+                        }
                         ListFooterComponent={
                             loading && !refreshing ? (
                                 <View style={estilosPublicacionesDirector.spinnerCargando}>
                                     <ActivityIndicator size="large" color={colores.primario} />
-                                </View>
-                            ) : datos.length >= total && total > 0 ? (
-                                <View style={estilosPublicacionesDirector.spinnerCargando}>
-                                    <Text style={estilosPublicacionesDirector.textoFinalLista}>
-                                        No hay más publicaciones para mostrar
-                                    </Text>
                                 </View>
                             ) : null
                         }
@@ -314,6 +308,14 @@ const PublicacionesDirector = ({ navigation, route }) => {
                     />
                 </View>
             </View>
+            <AppSnackbar
+                visible={snackbarVisible}
+                message={snackbarMessage}
+                type="success"
+                onDismiss={() => setSnackbarVisible(false)}
+                duration={3500}
+                bottomOffset={24}
+            />
         </View>
     );
 }

@@ -135,14 +135,14 @@ const PerfilMaestro = ({ navigation }) => {
     };
 
     // mostrar la fecha en DD/MM/YYYY
-    const formatDateDisplay = (dateStr) => {
+    const formatoFechaDisplay = (dateStr) => {
         if (!dateStr) return '';
         const [year, month, day] = dateStr.split('-');
         return `${day}/${month}/${year}`;
     };
 
     // guardar la fecha en YYYY-MM-DD
-    const formatDateSave = (dateObj) => {
+    const formatoFechaSave = (dateObj) => {
         const year = dateObj.getFullYear();
         const month = String(dateObj.getMonth() + 1).padStart(2, '0');
         const day = String(dateObj.getDate()).padStart(2, '0');
@@ -152,19 +152,19 @@ const PerfilMaestro = ({ navigation }) => {
     const handleGraduationDateChange = (event, selectedDate) => {
         setShowGraduationDatePicker(false);
         if (selectedDate) {
-            handleEditChange('graduationDate', formatDateSave(selectedDate));
+            handleEditChange('graduationDate', formatoFechaSave(selectedDate));
         }
     };
     const handleLaw19889DateChange = (event, selectedDate) => {
         setShowLaw19889DatePicker(false);
         if (selectedDate) {
-            handleEditChange('law19889CertificateDate', formatDateSave(selectedDate));
+            handleEditChange('law19889CertificateDate', formatoFechaSave(selectedDate));
         }
     };
     const handleCriminalRecordDateChange = (event, selectedDate) => {
         setShowCriminalRecordDatePicker(false);
         if (selectedDate) {
-            handleEditChange('criminalRecordDate', formatDateSave(selectedDate));
+            handleEditChange('criminalRecordDate', formatoFechaSave(selectedDate));
         }
     };
 
@@ -233,7 +233,7 @@ const PerfilMaestro = ({ navigation }) => {
                                                     onPress={() => setShowGraduationDatePicker(true)}
                                                 >
                                                     <Text style={stylesPerfil.textoFecha}>
-                                                        {editData.graduationDate ? formatDateDisplay(editData.graduationDate) : 'Seleccione una fecha...'}
+                                                        {editData.graduationDate ? formatoFechaDisplay(editData.graduationDate) : 'Seleccione una fecha...'}
                                                     </Text>
                                                     <MaterialIcons name="event" size={24} color="#009fe3" />
                                                 </TouchableOpacity>
@@ -298,7 +298,7 @@ const PerfilMaestro = ({ navigation }) => {
                                                     onPress={() => setShowLaw19889DatePicker(true)}
                                                 >
                                                     <Text style={stylesPerfil.textoFecha}>
-                                                        {editData.law19889CertificateDate ? formatDateDisplay(editData.law19889CertificateDate) : 'Seleccione una fecha...'}
+                                                        {editData.law19889CertificateDate ? formatoFechaDisplay(editData.law19889CertificateDate) : 'Seleccione una fecha...'}
                                                     </Text>
                                                     <MaterialIcons name="event" size={24} color="#009fe3" />
                                                 </TouchableOpacity>
@@ -325,7 +325,7 @@ const PerfilMaestro = ({ navigation }) => {
                                                     onPress={() => setShowCriminalRecordDatePicker(true)}
                                                 >
                                                     <Text style={stylesPerfil.textoFecha}>
-                                                        {editData.criminalRecordDate ? formatDateDisplay(editData.criminalRecordDate) : 'Seleccione una fecha...'}
+                                                        {editData.criminalRecordDate ? formatoFechaDisplay(editData.criminalRecordDate) : 'Seleccione una fecha...'}
                                                     </Text>
                                                     <MaterialIcons name="event" size={24} color="#009fe3" />
                                                 </TouchableOpacity>

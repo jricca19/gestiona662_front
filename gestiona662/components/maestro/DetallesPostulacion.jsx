@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { estilosDetalles } from '../styles/stylesDetallesPostulacion'
-import { formatUTC } from '../../utils/dates'
+import { formatoFecha } from '../../utils/dates'
 import { colores } from '../styles/fuentesyColores'
 
 const shiftLabels = {
@@ -17,9 +17,9 @@ const DetallesPostulacion = ({ navigation, route }) => {
 
     let diasCubrir = ''
     if (postulacion.postulationDays && postulacion.postulationDays.length > 0) {
-        const dias = postulacion.postulationDays.map(d => formatUTC(d.date, 'dd'))
-        const mes = formatUTC(postulacion.postulationDays[0].date, 'MMMM - yyyy').split(' - ')[0]
-        const anio = formatUTC(postulacion.postulationDays[0].date, 'MMMM - yyyy').split(' - ')[1]
+        const dias = postulacion.postulationDays.map(d => formatoFecha(d.date, 'dd'))
+        const mes = formatoFecha(postulacion.postulationDays[0].date, 'MMMM - yyyy').split(' - ')[0]
+        const anio = formatoFecha(postulacion.postulationDays[0].date, 'MMMM - yyyy').split(' - ')[1]
         diasCubrir += `${dias.join(', ')}\n${mes.charAt(0).toUpperCase() + mes.slice(1)} ${anio}`
     }
 
@@ -45,7 +45,7 @@ const DetallesPostulacion = ({ navigation, route }) => {
                 <View style={estilosDetalles.fila}>
                     <View style={estilosDetalles.tarjeta}>
                         <Text style={estilosDetalles.etiquetaTarjeta}>Año</Text>
-                        <Text style={estilosDetalles.valorTarjeta}>{pub.grade ? `${pub.grade}°` : '-'}</Text>
+                        <Text style={estilosDetalles.valorTarjeta}>{pub.grade >= 0 ? `${pub.grade}°` : '-'}</Text>
                     </View>
                     <View style={estilosDetalles.tarjeta}>
                         <Text style={estilosDetalles.etiquetaTarjeta}>Turno</Text>

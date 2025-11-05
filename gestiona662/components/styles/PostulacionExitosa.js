@@ -18,6 +18,17 @@ export const estilosPostulacionExitosa = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    scroll: {
+        flex: 1,
+        width: '100%'
+    },
+    contentContainer: {
+        flexGrow: 1,
+        justifyContent: 'flex-start',
+        paddingHorizontal: width * 0.04,
+        paddingVertical: height * 0.02,
+        alignItems: 'center',
+    },
     tituloEncabezado: {
         color: colores.terceario,
         fontSize: tamanos.titulo1,

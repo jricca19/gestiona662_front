@@ -4,7 +4,7 @@ import * as SecureStore from 'expo-secure-store'
 import { Ionicons } from '@expo/vector-icons'
 import { estilosPostulaciones } from '../styles/stylesPostulacionesMaestro'
 import { colores } from '../styles/fuentesyColores'
-import { formatUTC } from '../../utils/dates'
+import { formatoFecha } from '../../utils/dates'
 import { URL_BACKEND } from '@env';
 import EfectoSlide from '../EfectoSlide';
 import DeslizarParaEliminar from '../DeslizarParaEliminar';
@@ -117,10 +117,10 @@ const PostulacionesMaestro = ({ navigation, route }) => {
         let fechas = ''
         if (item.postulationDays && item.postulationDays.length > 0) {
             const dias = item.postulationDays.map(d =>
-                formatUTC(d.date, 'dd')
+                formatoFecha(d.date, 'dd')
             )
-            const mes = formatUTC(item.postulationDays[0].date, 'MMMM - yyyy').split(' - ')[0]
-            const anio = formatUTC(item.postulationDays[0].date, 'MMMM - yyyy').split(' - ')[1]
+            const mes = formatoFecha(item.postulationDays[0].date, 'MMMM - yyyy').split(' - ')[0]
+            const anio = formatoFecha(item.postulationDays[0].date, 'MMMM - yyyy').split(' - ')[1]
             fechas = `${dias.join(', ')} de ${mes} de ${anio}`
         }
 
@@ -147,7 +147,7 @@ const PostulacionesMaestro = ({ navigation, route }) => {
                                 </View>
                             </View>
                             <Text style={estilosPostulaciones.fechaTarjeta}>
-                                {pub.grade ? `${pub.grade}° - ` : ''}
+                                {pub.grade >= 0 ? `${pub.grade}° - ` : ''}
                                 {pub.shift === 'MORNING' ? 'Mañana' : pub.shift === 'AFTERNOON' ? 'Tarde' : pub.shift === 'FULL' ? 'Tiempo Completo' : pub.shift}
                             </Text>
                             <Text style={estilosPostulaciones.fechaTarjeta}>{fechas}</Text>

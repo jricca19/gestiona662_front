@@ -10,6 +10,7 @@ import { loguear, desloguear } from './store/slices/usuarioSlice';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { jwtDecode } from "jwt-decode";
 import { colores } from './components/styles/fuentesyColores';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function isTokenValid(token) {
   if (!token) return false;
@@ -73,7 +74,9 @@ function AppContent() {
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         <StatusBar style="light" />
         <NavigationContainer>
-          <Pantallas />
+          <ErrorBoundary>
+            <Pantallas />
+          </ErrorBoundary>
         </NavigationContainer>
       </SafeAreaView>
     </SafeAreaProvider>

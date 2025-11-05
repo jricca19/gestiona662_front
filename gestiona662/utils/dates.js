@@ -1,4 +1,4 @@
-export function formatUTC(dateStr, pattern = 'dd/MM/yyyy') {
+export function formatoFecha(dateStr, pattern = 'dd/MM/yyyy') {
     const date = new Date(dateStr);
     const day = String(date.getUTCDate()).padStart(2, '0');
     const monthNum = String(date.getUTCMonth() + 1).padStart(2, '0');
@@ -7,6 +7,7 @@ export function formatUTC(dateStr, pattern = 'dd/MM/yyyy') {
     const year = date.getUTCFullYear();
     const weekDay = date.toLocaleString('es-ES', { weekday: 'long', timeZone: 'UTC' });
     if (pattern === 'dd/MM/yyyy') return `${day}/${monthNum}/${year}`;
+    if (pattern === 'dd/MM') return `${day}/${monthNum}`;
     if (pattern === 'dd') return day;
     if (pattern === 'dd MMM yyyy') return `${day} ${monthShort} ${year}`;
     if (pattern === 'MMMM - yyyy') return `${monthLong.charAt(0).toUpperCase() + monthLong.slice(1)} - ${year}`;
@@ -14,53 +15,45 @@ export function formatUTC(dateStr, pattern = 'dd/MM/yyyy') {
     return '';
 }
 
-export function fechaLocalFromISO(isoDateStr) {
-    // isoDateStr: "YYYY-MM-DD"
+export function fechaStringAFechaUTC(isoDateStr) {
     const [year, month, day] = isoDateStr.split('-').map(Number);
-    return new Date(year, month - 1, day);
+    // Crear la fecha en UTC para evitar desplazamientos por zona horaria
+    return new Date(Date.UTC(year, month - 1, day));
 }
 
-export function soloFecha(fecha) {
-    return fecha.toISOString().split('T')[0];
-}
-
-export function esFinDeSemana(d) {
-    const day = d.getDay();
-    return day === 0 || day === 6;
-};
-
-export function contarDiasLaborales(start, end) {
-    const s = new Date(start);
-    const e = new Date(end);
-    let count = 0;
-    for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
-        const day = d.getDay();
-        if (day >= 1 && day <= 5) count++;
-    }
-    return count;
-};
-
-export function dateToISO(d) {
+export function fechaAStringISO(d) {
     if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
     const date = new Date(d);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    // Extraer siempre en UTC para no retroceder/avanzar un día por la zona horaria local
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
 }
 
-export function formatFechaDDMMYYYY(dateStr) {
-    // Admite "YYYY-MM-DD" o ISO
+export function formatoFechaDDMMYYYY(dateStr) {
     let year, month, day;
     if (dateStr.includes('T')) {
-        // ISO string
         const d = new Date(dateStr);
         year = d.getFullYear();
         month = String(d.getMonth() + 1).padStart(2, '0');
         day = String(d.getDate()).padStart(2, '0');
     } else {
-        // "YYYY-MM-DD"
         [year, month, day] = dateStr.split('-');
     }
     return `${day}/${month}/${year}`;
 }
+
+export function contarDiasLaborales(startDate, endDate) {
+    const [ys, ms, ds] = startDate.split('-').map(Number);
+    const [ye, me, de] = endDate.split('-').map(Number);
+    const start = new Date(Date.UTC(ys, ms - 1, ds));
+    const end = new Date(Date.UTC(ye, me - 1, de));
+    let count = 0;
+    for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+        const wd = d.getUTCDay();
+        if (wd >= 1 && wd <= 5) count++;
+    }
+    return count;
+};
+

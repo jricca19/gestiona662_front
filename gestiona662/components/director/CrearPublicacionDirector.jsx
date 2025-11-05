@@ -5,8 +5,8 @@ import { stylesCrearPublicacion } from '../styles/stylesCrearPublicacion';
 import * as SecureStore from 'expo-secure-store';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { URL_BACKEND } from '@env';
-import { esFinDeSemana, contarDiasLaborales, formatUTC, fechaLocalFromISO, dateToISO, formatFechaDDMMYYYY } from '../../utils/dates';
-import { colores, tamanos } from '../styles/fuentesyColores';
+import { fechaStringAFechaUTC, fechaAStringISO, formatoFechaDDMMYYYY, contarDiasLaborales } from '../../utils/dates';
+import { colores } from '../styles/fuentesyColores';
 
 const grados = ['0', '1', '2', '3', '4', '5', '6'];
 
@@ -30,24 +30,24 @@ const CrearPublicacionDirector = ({ navigation }) => {
             return;
         }
 
-        const desdeDate = fechaLocalFromISO(desde);
-        const hastaDate = fechaLocalFromISO(hasta);
+        const desdeDate = fechaStringAFechaUTC(desde);
+        const hastaDate = fechaStringAFechaUTC(hasta);
 
         if (hastaDate < desdeDate) {
             Alert.alert('Rango de fechas inválido', 'La fecha de fin debe ser mayor o igual a la fecha de inicio.');
             return;
         }
-        const hoy = new Date();
-        hoy.setHours(0,0,0,0);
-        if (desdeDate < hoy) {
+        // Comparar usando medianoche UTC para evitar desfases por zona horaria
+        if (desdeDate < hoyUTC) {
             Alert.alert('Fecha inválida', 'La fecha de inicio no puede ser anterior a hoy.');
             return;
         }
-        if (esFinDeSemana(desdeDate) || esFinDeSemana(hastaDate)) {
+        if ([desdeDate.getUTCDay(), hastaDate.getUTCDay()].some(d => d === 0 || d === 6)) {
             Alert.alert('Fecha inválida', 'La fecha de inicio o fin no puede ser un fin de semana.');
             return;
         }
-        const workingCount = contarDiasLaborales(desdeDate, hastaDate);
+
+        const workingCount = contarDiasLaborales(desde, hasta);
         if (isType662 && workingCount > 3) {
             Alert.alert('Rango de fechas inválido', 'No se pueden crear publicaciones para más de 3 días hábiles en suplencias tipo 662.');
             return;
@@ -103,18 +103,11 @@ const CrearPublicacionDirector = ({ navigation }) => {
                 setTurno('Matutino');
                 setAyuda('');
                 setIsType662(false);
-                Alert.alert(
-                    '¡Éxito!',
-                    'Publicación creada correctamente',
-                    [
-                        {
-                            text: 'OK',
-                            onPress: () => {
-                                navigation.navigate('directorTabs', { screen: 'misPublicaciones', params: { refresh: true } });
-                            },
-                        },
-                    ]
-                );
+                // Navegar y mostrar snackbar en la pantalla de publicaciones
+                navigation.navigate('directorTabs', {
+                    screen: 'misPublicaciones',
+                    params: { refresh: true, flashMessage: 'Publicación creada correctamente' }
+                });
             } else {
                 const errorData = await res.json();
                 Alert.alert('Error al crear publicación', errorData.message || 'No se pudo crear la publicación.');
@@ -150,6 +143,11 @@ const CrearPublicacionDirector = ({ navigation }) => {
 
         obtenerEscuelas();
     }, []);
+
+    // Hoy en horario local (para los pickers) y en UTC (para validaciones lógicas)
+    const hoyLocal = new Date();
+    hoyLocal.setHours(0, 0, 0, 0);
+    const hoyUTC = fechaStringAFechaUTC(fechaAStringISO(new Date()));
 
     return (
         <View style={stylesCrearPublicacion.container}>
@@ -260,7 +258,7 @@ const CrearPublicacionDirector = ({ navigation }) => {
                                     <TextInput
                                         style={stylesCrearPublicacion.input}
                                         placeholder="Seleccione fecha..."
-                                        value={desde ? formatFechaDDMMYYYY(desde) : ''}
+                                        value={desde ? formatoFechaDDMMYYYY(desde) : ''}
                                         editable={false}
                                         pointerEvents="none"
                                     />
@@ -282,7 +280,7 @@ const CrearPublicacionDirector = ({ navigation }) => {
                                     <TextInput
                                         style={stylesCrearPublicacion.input}
                                         placeholder="Seleccione fecha..."
-                                        value={hasta ? formatFechaDDMMYYYY(hasta) : ''}
+                                        value={hasta ? formatoFechaDDMMYYYY(hasta) : ''}
                                         editable={false}
                                         pointerEvents="none"
                                     />
@@ -298,14 +296,14 @@ const CrearPublicacionDirector = ({ navigation }) => {
 
                         {showDesdePicker && (
                             <DateTimePicker
-                                value={desde ? fechaLocalFromISO(desde) : new Date()}
+                                value={desde ? fechaStringAFechaUTC(desde) : hoyLocal}
                                 mode="date"
                                 display="default"
-                                minimumDate={new Date()}
+                                minimumDate={hoyLocal}
                                 onChange={(event, selectedDate) => {
                                     setShowDesdePicker(false);
                                     if (selectedDate) {
-                                        setDesde(dateToISO(selectedDate));
+                                        setDesde(fechaAStringISO(selectedDate));
                                     }
                                 }}
                             />
@@ -313,14 +311,14 @@ const CrearPublicacionDirector = ({ navigation }) => {
 
                         {showHastaPicker && (
                             <DateTimePicker
-                                value={hasta ? fechaLocalFromISO(hasta) : new Date()}
+                                value={hasta ? fechaStringAFechaUTC(hasta) : hoyLocal}
                                 mode="date"
                                 display="default"
-                                minimumDate={new Date()}
+                                minimumDate={hoyLocal}
                                 onChange={(event, selectedDate) => {
                                     setShowHastaPicker(false);
                                     if (selectedDate) {
-                                        setHasta(dateToISO(selectedDate));
+                                        setHasta(fechaAStringISO(selectedDate));
                                     }
                                 }}
                             />

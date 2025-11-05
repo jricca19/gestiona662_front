@@ -1,51 +1,156 @@
-import { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions, Alert } from 'react-native';
+import { useMemo, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, Dimensions, Alert, Image } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
-import { format, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { colores, tamanos } from '../styles/fuentesyColores';
 import { URL_BACKEND } from '@env';
+import { formatoFecha, fechaStringAFechaUTC, fechaAStringISO } from '../../utils/dates';
 
 const { width, height } = Dimensions.get('window')
+
+// Enumerar días laborales (L-V) entre dos fechas ISO (yyyy-MM-dd), inclusive, en UTC
+const enumerarDiasLaborales = (inicioISO, finISO) => {
+    const [ys, ms, ds] = inicioISO.split('-').map(Number);
+    const [ye, me, de] = finISO.split('-').map(Number);
+    const inicio = new Date(Date.UTC(ys, ms - 1, ds));
+    const fin = new Date(Date.UTC(ye, me - 1, de));
+    const dias = [];
+    for (let d = new Date(inicio); d <= fin; d.setUTCDate(d.getUTCDate() + 1)) {
+        const wd = d.getUTCDay();
+        if (wd >= 1 && wd <= 5) {
+            const y = d.getUTCFullYear();
+            const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(d.getUTCDate()).padStart(2, '0');
+            dias.push(`${y}-${m}-${day}`);
+        }
+    }
+    return dias;
+}
 
 const PostulacionesPublicacion = ({ navigation, route }) => {
     const postulaciones = route.params?.postulaciones || [];
     const publicacion = route.params?.publicacion || null;
+    // seleccion: { [postulationId]: string[] (dias ISO) }
     const [seleccion, setSeleccion] = useState({});
-    const [seleccionado, setSeleccionado] = useState(null);
     let fechaFormateada = '';
     if (publicacion.startDate && publicacion.endDate) {
-        const inicio = parseISO(publicacion.startDate);
-        const fin = parseISO(publicacion.endDate);
-        fechaFormateada =
-            format(inicio, 'dd', { locale: es }) +
-            '-' +
-            format(fin, 'dd MMM yyyy', { locale: es }).toUpperCase();
+        const inicioISO = fechaAStringISO(publicacion.startDate);
+        const finISO = fechaAStringISO(publicacion.endDate);
+        fechaFormateada = `${formatoFecha(inicioISO, 'dd')}-${formatoFecha(finISO, 'dd MMM yyyy').toUpperCase()}`;
     }
 
+    const inicioISO = publicacion.startDate ? fechaAStringISO(publicacion.startDate) : null;
+    const finISO = publicacion.endDate ? fechaAStringISO(publicacion.endDate) : null;
+
+    const rangoDias = useMemo(() => {
+        if (!inicioISO || !finISO) return [];
+        return enumerarDiasLaborales(inicioISO, finISO);
+    }, [inicioISO, finISO]);
+
+    const totalDias = rangoDias.length;
+
+    const mapNombrePorId = useMemo(() => {
+        const map = {};
+        postulaciones.forEach(p => {
+            const nombreCompleto = `${p.teacherId?.name ?? ''} ${p.teacherId?.lastName ?? ''}`.trim();
+            map[p._id] = nombreCompleto || 'Sin nombre';
+        });
+        return map;
+    }, [postulaciones]);
+
+    const asignadoPorDia = useMemo(() => {
+        const map = {};
+        Object.entries(seleccion).forEach(([pid, dias]) => {
+            (dias || []).forEach(d => {
+                map[d] = pid; // si hubiera duplicado, la última gana; evitamos duplicar en el toggle
+            });
+        });
+        return map;
+    }, [seleccion]);
+
+    const cubiertos = Object.keys(asignadoPorDia).length;
+    const puedeConfirmar = totalDias > 0 && cubiertos === totalDias;
+
+    const getDiasDisponibles = (post) => {
+        if (!post) return [];
+        if (post.appliesToAllDays) return rangoDias;
+        const setRango = new Set(rangoDias);
+        const dias = (Array.isArray(post.postulationDays) ? post.postulationDays : [])
+            .map(d => fechaAStringISO(d.date))
+            .filter(d => setRango.has(d));
+        return dias;
+    };
+
+    const toggleSeleccionMaestro = (post) => {
+        const pid = post._id;
+        const yaSeleccionado = !!seleccion[pid];
+        if (yaSeleccionado) {
+            // Quitar maestro y sus días
+            setSeleccion(prev => {
+                const copia = { ...prev };
+                delete copia[pid];
+                return copia;
+            });
+            return;
+        }
+        // Agregar maestro con días iniciales = disponibles no asignados
+        const disponibles = getDiasDisponibles(post);
+        const iniciales = disponibles.filter(d => !asignadoPorDia[d]);
+        if (iniciales.length === 0) {
+            Alert.alert('Sin días disponibles', 'Este postulante no tiene días libres sin conflicto.');
+            return;
+        }
+        setSeleccion(prev => ({ ...prev, [pid]: iniciales }));
+    };
+
+    const toggleDiaParaMaestro = (post, diaISO) => {
+        const pid = post._id;
+        const disponibles = new Set(getDiasDisponibles(post));
+        if (!disponibles.has(diaISO)) return; // seguridad
+        const asignadoA = asignadoPorDia[diaISO];
+        const esDeOtro = asignadoA && asignadoA !== pid;
+        if (esDeOtro) {
+            Alert.alert('Día ocupado', 'Ese día ya está asignado a otro postulante.');
+            return;
+        }
+        setSeleccion(prev => {
+            const actual = new Set(prev[pid] || []);
+            if (actual.has(diaISO)) {
+                actual.delete(diaISO);
+            } else {
+                actual.add(diaISO);
+            }
+            const arr = Array.from(actual);
+            // Si se quedó sin días, quitamos el maestro
+            if (arr.length === 0) {
+                const copia = { ...prev };
+                delete copia[pid];
+                return copia;
+            }
+            return { ...prev, [pid]: arr };
+        });
+    };
+
     const onConfirmar = async () => {
-        if (!seleccionado || !seleccion[seleccionado] || seleccion[seleccionado].length === 0) {
-            Alert.alert('Error', 'Por favor selecciona una postulación y al menos un día.');
+        if (!puedeConfirmar) {
+            Alert.alert('Cobertura incompleta', 'Debes cubrir todos los días de la publicación sin superposiciones.');
             return;
         }
 
         try {
             const token = await SecureStore.getItemAsync('token');
+            const asignaciones = Object.entries(seleccion).map(([postulationId, selectedDays]) => ({
+                postulationId,
+                selectedDays,
+            }));
+
             const res = await fetch(`${URL_BACKEND}/v1/publications/assignPostulation/multiple`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    asignaciones: [
-                        {
-                            postulationId: seleccionado,
-                            selectedDays: seleccion[seleccionado]
-                        },
-                    ],
-                }),
+                body: JSON.stringify({ asignaciones }),
             });
 
             const data = await res.json();
@@ -53,7 +158,6 @@ const PostulacionesPublicacion = ({ navigation, route }) => {
             if (res.ok) {
                 Alert.alert('¡Éxito!', 'Postulación asignada correctamente');
                 setSeleccion({});
-                setSeleccionado(null);
             } else {
                 Alert.alert('Error', 'Error al asignar: ' + data.message);
             }
@@ -73,118 +177,124 @@ const PostulacionesPublicacion = ({ navigation, route }) => {
                 <View style={{ width: 28 }} />
             </View>
 
-            <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
-                <View style={{ alignItems: 'center', marginTop: 10 }}>
-                    <Text style={styles.grado}>
-                        {publicacion.grade === 0 ? 'NIVEL INICIAL' : `${publicacion.grade}°`}
-                    </Text>
-                    <Text style={styles.fecha}>{fechaFormateada}</Text>
-                </View>
+            <View style={{ flex: 1 }}>
+                <View style={styles.encabezadoPostulaciones}>
+                    <View style={{ alignItems: 'center', marginTop: 5 }}>
+                        <Text style={styles.grado}>
+                            {publicacion.grade === 0 ? 'NIVEL INICIAL' : `${publicacion.grade}°`}
+                        </Text>
+                        <Text style={styles.fecha}>{fechaFormateada}</Text>
+                    </View>
 
-                <Text style={styles.subtitulo}>Postulados</Text>
-                {postulaciones.map((post, idx) => {
-                    const postulacionId = post._id
-                    const perfil = post.teacherId?.teacherProfile || {};
-                    const nombreCompleto = `${post.teacherId?.name ?? ''} ${post.teacherId?.lastName ?? ''}`.trim();
-
-                    let diasPublicacion = [];
-                    if (publicacion.startDate && publicacion.endDate) {
-                        const start = parseISO(publicacion.startDate);
-                        const end = parseISO(publicacion.endDate);
-                        let current = new Date(start);
-                        while (current <= end) {
-                            const raw = current.toISOString().split('T')[0];
-                            const label = format(current, 'dd/MM', { locale: es });
-                            diasPublicacion.push({ raw, label });
-                            current.setDate(current.getDate() + 1);
-                        }
-                    }
-
-                    const diasElegidos = post.postulationDays.map(d => new Date(d.date).toISOString().split('T')[0]);
-
-                    return (
-                        <View
-                            key={post._id || idx}
-                            style={[
-                                styles.card,
-                                seleccionado === postulacionId && styles.cardSeleccionada
-                            ]}
-                        >
-                            <View style={styles.etiquetasRow}>
-                                <View style={[
-                                    styles.etiqueta,
-                                    perfil.isEffectiveTeacher ? styles.etiquetaNormal : styles.etiquetaResaltada
-                                ]}>
-                                    <Text style={[
-                                        styles.etiquetaTexto,
-                                        perfil.isEffectiveTeacher ? styles.etiquetaTextoNormal : styles.etiquetaTextoResaltada
-                                    ]}>
-                                        {perfil.isEffectiveTeacher ? 'Efectivo' : 'No efectivo'}
-                                    </Text>
-                                </View>
-                                <View style={[
-                                    styles.etiqueta,
-                                    post.appliesToAllDays ? styles.etiquetaNormal : styles.etiquetaResaltada
-                                ]}>
-                                    <Text style={[
-                                        styles.etiquetaTexto,
-                                        post.appliesToAllDays ? styles.etiquetaTextoNormal : styles.etiquetaTextoResaltada
-                                    ]}>
-                                        {post.appliesToAllDays ? 'Todos los días' : 'Solo algunos días'}
-                                    </Text>
-                                </View>
-                                <MaterialIcons name="star" size={20} color={'#FFD600'} style={{ marginLeft: 'auto' }} />
-                                <Text style={styles.puntaje}>{perfil.rating}</Text>
+                    {/* Resumen de cobertura (estático arriba) */}
+                    {totalDias > 0 && (
+                        <View style={styles.coberturaBox}>
+                            <Text style={styles.coberturaTitulo}>Cobertura: {cubiertos}/{totalDias} días</Text>
+                            <View style={styles.coberturaDiasRow}>
+                                {rangoDias.map(d => {
+                                    const pid = asignadoPorDia[d];
+                                    const asignado = !!pid;
+                                    const etiqueta = formatoFecha(d, 'dd/MM');
+                                    return (
+                                        <View key={d} style={styles.calDayChip}>
+                                            <Text style={[styles.calDayChipText, asignado ? styles.calDayChipTextAssigned : styles.calDayChipTextUnassigned]}>
+                                                {etiqueta}
+                                            </Text>
+                                        </View>
+                                    );
+                                })}
                             </View>
-
-                            <Text style={styles.nombre}>{nombreCompleto}</Text>
-
-                            <Text style={styles.disponibilidadLabel}>Disponibilidad</Text>
-                            <View style={styles.disponibilidadRow}>
-                                {diasPublicacion.map((dia, i) => (
-                                    <View key={dia.raw + i} style={styles.radioContainer}>
-                                        <View style={[
-                                            styles.radio,
-                                            diasElegidos.includes(dia.raw) && styles.radioSelected
-                                        ]} />
-                                        <Text style={styles.radioLabel}>{dia.label}</Text>
-                                    </View>
-                                ))}
-                            </View>
-
-                            <TouchableOpacity
-                                style={[
-                                    styles.seleccionarBtn,
-                                    seleccionado !== postulacionId && styles.seleccionarBtnActivo,
-                                    seleccionado === postulacionId && styles.seleccionarBtnSinBorde
-                                ]}
-                                onPress={() => {
-                                    setSeleccionado(postulacionId);
-                                    setSeleccion(prev => ({
-                                        ...prev,
-                                        [postulacionId]: diasElegidos
-                                    }));
-                                }}
-                                activeOpacity={0.8}
-                            >
-                                <Text style={[
-                                    styles.seleccionarTexto,
-                                    seleccionado !== postulacionId && styles.seleccionarTextoActivo
-                                ]}>
-                                    {seleccionado === postulacionId ? "Seleccionado" : "Seleccionar"}
-                                </Text>
-                            </TouchableOpacity>
                         </View>
-                    );
-                })}
+                    )}
+                </View>
+                <FlatList
+                    data={postulaciones}
+                    keyExtractor={(item, index) => item?._id ?? String(index)}
+                    ListHeaderComponent={() => (
+                        <Text style={styles.subtitulo}>Postulados</Text>
+                    )}
+                    renderItem={({ item: post }) => {
+                        const postulacionId = post._id;
+                        const perfil = post.teacherId?.teacherProfile || {};
+                        const nombreCompleto = `${post.teacherId?.name ?? ''} ${post.teacherId?.lastName ?? ''}`.trim();
 
-                <TouchableOpacity
-                    style={styles.confirmarBtn}
-                    onPress={onConfirmar}
-                >
-                    <Text style={styles.confirmarTexto}>Confirmar</Text>
-                </TouchableOpacity>
-            </ScrollView>
+                        const diasDisponibles = getDiasDisponibles(post);
+                        const seleccionado = !!seleccion[postulacionId];
+                        const diasAsignadosEste = new Set(seleccion[postulacionId] || []);
+
+                        return (
+                            <TouchableOpacity
+                                style={[styles.card, seleccionado && styles.cardSeleccionada]}
+                                onPress={() => toggleSeleccionMaestro(post)}
+                                activeOpacity={0.9}
+                            >
+                                <View style={styles.etiquetasRow}>
+                                    <View style={[styles.etiqueta, perfil.isEffectiveTeacher ? styles.etiquetaNormal : styles.etiquetaResaltada]}>
+                                        <Text style={[styles.etiquetaTexto, perfil.isEffectiveTeacher ? styles.etiquetaTextoNormal : styles.etiquetaTextoResaltada]}>
+                                            {perfil.isEffectiveTeacher ? 'Efectivo' : 'No efectivo'}
+                                        </Text>
+                                    </View>
+                                    <View style={[styles.etiqueta, post.appliesToAllDays ? styles.etiquetaNormal : styles.etiquetaResaltada]}>
+                                        <Text style={[styles.etiquetaTexto, post.appliesToAllDays ? styles.etiquetaTextoNormal : styles.etiquetaTextoResaltada]}>
+                                            {post.appliesToAllDays ? 'Puede todos los días' : 'Puede solo algunos días'}
+                                        </Text>
+                                    </View>
+                                    <MaterialIcons name="star" size={20} color={'#FFD600'} style={{ marginLeft: 'auto' }} />
+                                    <Text style={styles.puntaje}>{perfil.rating}</Text>
+                                </View>
+
+                                <Text style={styles.nombre}>{nombreCompleto}</Text>
+
+                                <Text style={styles.disponibilidadLabel}>Días de disponibilidad</Text>
+                                <View style={styles.disponibilidadRow}>
+                                    {diasDisponibles.map((d) => {
+                                        const asignadoA = asignadoPorDia[d];
+                                        const esMio = asignadoA === postulacionId;
+                                        const ocupadoOtro = asignadoA && !esMio;
+                                        const label = formatoFecha(d, 'dd/MM');
+                                        return (
+                                            <TouchableOpacity
+                                                key={`${postulacionId}-${d}`}
+                                                style={[
+                                                    styles.dayBox,
+                                                    esMio ? styles.dayBoxAvailable : styles.dayBoxNeutral,
+                                                    ocupadoOtro && styles.dayBoxUnavailable,
+                                                    seleccionado && !ocupadoOtro && !esMio && styles.dayBoxSelectable,
+                                                ]}
+                                                onPress={() => {
+                                                    if (!seleccionado) return toggleSeleccionMaestro(post);
+                                                    if (ocupadoOtro) return toggleSeleccionMaestro(post);
+                                                    toggleDiaParaMaestro(post, d);
+                                                }}
+                                                activeOpacity={0.8}
+                                            >
+                                                <Text
+                                                    style={[
+                                                        styles.dayBoxText,
+                                                        esMio ? styles.dayBoxTextAvailable : styles.dayBoxTextNeutral,
+                                                        ocupadoOtro && styles.dayBoxTextUnavailable,
+                                                    ]}
+                                                >
+                                                    {label}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </View>
+                            </TouchableOpacity>
+                        );
+                    }}
+                    ListFooterComponent={postulaciones.length > 0 ? (
+                        <TouchableOpacity
+                            style={styles.confirmarBtn}
+                            onPress={() => { onConfirmar(); }}
+                        >
+                            <Text style={styles.confirmarTexto}>Confirmar</Text>
+                        </TouchableOpacity>
+                    ) : null}
+                    contentContainerStyle={{ paddingBottom: 30 }}
+                />
+            </View>
         </View>
     );
 };
@@ -224,16 +334,25 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: tamanos.subtitulo,
         color: colores.quinto,
-        marginLeft: 18,
+        marginHorizontal: 12,
         marginTop: 10,
-        marginBottom: 6,
+    },
+    encabezadoPostulaciones: {
+        flexDirection: 'column',
+        alignItems: 'stretch',
+        paddingVertical: height * 0.01,
+        paddingHorizontal: width * 0.01,
+        elevation: 6,
+        backgroundColor: colores.terceario,
+        borderBottomWidth: 1,
+        borderColor: colores.tercearioOscuro,
     },
     card: {
         backgroundColor: colores.secundarioClaro,
         borderRadius: width * 0.04,
         padding: 12,
         marginHorizontal: 12,
-        marginBottom: 14,
+        marginVertical: 14,
         elevation: 6,
         borderColor: colores.secundarioClaro,
         borderWidth: 1,
@@ -256,20 +375,20 @@ const styles = StyleSheet.create({
         marginRight: 6,
     },
     etiquetaNormal: {
-        backgroundColor: colores.terceario,
+        backgroundColor: colores.cartelExito,
     },
     etiquetaResaltada: {
-        backgroundColor: colores.terceario,
+        backgroundColor: colores.cartelAdvertencia,
     },
     etiquetaTexto: {
         fontWeight: 'bold',
         fontSize: 13,
     },
     etiquetaTextoNormal: {
-        color: colores.tercearioOscuro,
+        color: colores.letrasExito,
     },
     etiquetaTextoResaltada: {
-        color: colores.tercearioOscuro,
+        color: colores.letrasAdvertencia,
     },
     puntaje: {
         fontWeight: 'bold',
@@ -293,33 +412,53 @@ const styles = StyleSheet.create({
     },
     disponibilidadRow: {
         flexDirection: 'row',
+        flexWrap: 'wrap',
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: height * 0.02,
         marginTop: 2,
-        marginLeft: width * 0.15,
+        marginLeft: 0,
+        paddingHorizontal: 6,
     },
-    radioContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginRight: width * 0.07,
-    },
-    radio: {
-        width: 20,
-        height: 20,
+    dayBox: {
+        minWidth: 56,
+        paddingVertical: 6,
+        paddingHorizontal: 10,
         borderRadius: 10,
-        borderWidth: 2,
-        borderColor: colores.tercearioOscuro,
-        backgroundColor: colores.cuarto,
-        marginRight: 4,
+        borderWidth: 1,
+        margin: 4,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
-    radioSelected: {
+    dayBoxAvailable: {
         backgroundColor: colores.primario,
         borderColor: colores.primarioOscuro,
     },
-    radioLabel: {
+    dayBoxNeutral: {
+        backgroundColor: colores.secundarioMasClaro,
+        borderColor: colores.terceario,
+    },
+    dayBoxUnavailable: {
+        backgroundColor: colores.secundarioMasClaro,
+        borderColor: colores.terceario,
+    },
+    dayBoxSelectable: {
+        backgroundColor: colores.secundarioClaro,
+        borderColor: colores.primario,
+    },
+    dayBoxText: {
         fontSize: 14,
+        fontWeight: 'bold',
         color: colores.quinto,
+    },
+    dayBoxTextAvailable: {
+        color: colores.cuarto,
+    },
+    dayBoxTextNeutral: {
+        color: colores.quinto,
+    },
+    dayBoxTextUnavailable: {
+        color: colores.terceario,
     },
     seleccionarBtn: {
         alignSelf: 'center',
@@ -366,5 +505,54 @@ const styles = StyleSheet.create({
         color: colores.cuarto,
         fontWeight: 'bold',
         fontSize: tamanos.texto,
+    },
+    sinPublicaciones: {
+        alignItems: 'center',
+        marginTop: 32,
+        paddingHorizontal: 24,
+    },
+    textoFinalLista: {
+        textAlign: 'center',
+        color: colores.quinto,
+        marginBottom: 16,
+    },
+    sinPublicacionesImagen: {
+        width: 260,
+        height: 200,
+    },
+    coberturaBox: {
+        padding: 10,
+    },
+    coberturaTitulo: {
+        color: colores.quinto,
+        fontWeight: 'bold',
+        marginBottom: 6,
+        textAlign: 'center',
+    },
+    coberturaDiasRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+    },
+    calDayChip: {
+        minWidth: 0,
+        paddingVertical: 2,
+        paddingHorizontal: 4,
+        borderRadius: 0,
+        borderWidth: 0,
+        margin: 2,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'transparent',
+    },
+    calDayChipText: {
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    calDayChipTextAssigned: {
+        color: colores.primario,
+    },
+    calDayChipTextUnassigned: {
+        color: colores.letrasError,
     },
 });

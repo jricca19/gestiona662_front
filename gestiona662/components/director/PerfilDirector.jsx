@@ -21,16 +21,30 @@ const PerfilDirector = ({ navigation }) => {
 
     useEffect(() => {
         const fetchPerfil = async () => {
-            const token = await SecureStore.getItemAsync('token');
-            const resp = await fetch(`${URL_BACKEND}/v1/users/profile`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-            });
-            const data = await resp.json();
-            setPerfil(data);
+            try {
+                const token = await SecureStore.getItemAsync('token');
+                const resp = await fetch(`${URL_BACKEND}/v1/users/profile`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                });
+                const text = await resp.text();
+                if (!resp.ok) {
+                    console.error('Error perfil director:', text);
+                    return;
+                }
+                let data = null;
+                try {
+                    data = text ? JSON.parse(text) : null;
+                } catch (e) {
+                    console.error('Perfil no es JSON válido');
+                }
+                if (data) setPerfil(data);
+            } catch (e) {
+                console.error('Fallo obteniendo perfil director:', e);
+            }
         };
         fetchPerfil();
         cargarEscuelas();
