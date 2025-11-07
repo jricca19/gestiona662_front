@@ -9,12 +9,15 @@ export const estilosDetalles = StyleSheet.create({
         backgroundColor: colores.terceario,
     },
     encabezado: {
+        width: '100%',
         backgroundColor: colores.primario,
-        paddingVertical: height * 0.015,
-        paddingHorizontal: width * 0.04,
+        paddingVertical: height * 0.01,
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start',
+    },
+    botonAtras: {
+        marginHorizontal: width * 0.04,
     },
     tituloEncabezado: {
         color: colores.terceario,

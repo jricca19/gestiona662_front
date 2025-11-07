@@ -8,7 +8,6 @@ import { formatoFecha, fechaStringAFechaUTC, fechaAStringISO } from '../../utils
 
 const { width, height } = Dimensions.get('window')
 
-// Enumerar días laborales (L-V) entre dos fechas ISO (yyyy-MM-dd), inclusive, en UTC
 const enumerarDiasLaborales = (inicioISO, finISO) => {
     const [ys, ms, ds] = inicioISO.split('-').map(Number);
     const [ye, me, de] = finISO.split('-').map(Number);
@@ -30,7 +29,6 @@ const enumerarDiasLaborales = (inicioISO, finISO) => {
 const PostulacionesPublicacion = ({ navigation, route }) => {
     const postulaciones = route.params?.postulaciones || [];
     const publicacion = route.params?.publicacion || null;
-    // seleccion: { [postulationId]: string[] (dias ISO) }
     const [seleccion, setSeleccion] = useState({});
     let fechaFormateada = '';
     if (publicacion.startDate && publicacion.endDate) {
@@ -62,7 +60,7 @@ const PostulacionesPublicacion = ({ navigation, route }) => {
         const map = {};
         Object.entries(seleccion).forEach(([pid, dias]) => {
             (dias || []).forEach(d => {
-                map[d] = pid; // si hubiera duplicado, la última gana; evitamos duplicar en el toggle
+                map[d] = pid;
             });
         });
         return map;
@@ -85,7 +83,6 @@ const PostulacionesPublicacion = ({ navigation, route }) => {
         const pid = post._id;
         const yaSeleccionado = !!seleccion[pid];
         if (yaSeleccionado) {
-            // Quitar maestro y sus días
             setSeleccion(prev => {
                 const copia = { ...prev };
                 delete copia[pid];
@@ -93,7 +90,6 @@ const PostulacionesPublicacion = ({ navigation, route }) => {
             });
             return;
         }
-        // Agregar maestro con días iniciales = disponibles no asignados
         const disponibles = getDiasDisponibles(post);
         const iniciales = disponibles.filter(d => !asignadoPorDia[d]);
         if (iniciales.length === 0) {
@@ -106,7 +102,7 @@ const PostulacionesPublicacion = ({ navigation, route }) => {
     const toggleDiaParaMaestro = (post, diaISO) => {
         const pid = post._id;
         const disponibles = new Set(getDiasDisponibles(post));
-        if (!disponibles.has(diaISO)) return; // seguridad
+        if (!disponibles.has(diaISO)) return;
         const asignadoA = asignadoPorDia[diaISO];
         const esDeOtro = asignadoA && asignadoA !== pid;
         if (esDeOtro) {
@@ -121,7 +117,6 @@ const PostulacionesPublicacion = ({ navigation, route }) => {
                 actual.add(diaISO);
             }
             const arr = Array.from(actual);
-            // Si se quedó sin días, quitamos el maestro
             if (arr.length === 0) {
                 const copia = { ...prev };
                 delete copia[pid];
@@ -170,34 +165,51 @@ const PostulacionesPublicacion = ({ navigation, route }) => {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.botonAtras}>
                     <Ionicons name="arrow-back" size={28} color={colores.cuarto} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Publicación</Text>
-                <View style={{ width: 28 }} />
+                <Text style={styles.headerTitle}>Selección de postulantes</Text>
             </View>
 
             <View style={{ flex: 1 }}>
                 <View style={styles.encabezadoPostulaciones}>
-                    <View style={{ alignItems: 'center', marginTop: 5 }}>
-                        <Text style={styles.grado}>
-                            {publicacion.grade === 0 ? 'NIVEL INICIAL' : `${publicacion.grade}°`}
-                        </Text>
-                        <Text style={styles.fecha}>{fechaFormateada}</Text>
+                    <View style={styles.headerChipsRow}>
+                        <View style={styles.chip}>
+                            <Text style={styles.chipLabel}>Año:</Text>
+                            <Text style={styles.chipValue}>
+                                {publicacion.grade === 0 ? 'NIVEL INICIAL' : `${publicacion.grade}°`}
+                            </Text>
+                        </View>
+                        {(inicioISO && finISO) ? (
+                            <View style={styles.chip}>
+                                <Text style={styles.chipLabel}>Periodo:</Text>
+                                <Text style={styles.chipValue}>
+                                    {`${formatoFecha(inicioISO, 'dd')}-${formatoFecha(finISO, 'dd MMM yyyy').toUpperCase()}`}
+                                </Text>
+                            </View>
+                        ) : null}
                     </View>
-
-                    {/* Resumen de cobertura (estático arriba) */}
                     {totalDias > 0 && (
-                        <View style={styles.coberturaBox}>
-                            <Text style={styles.coberturaTitulo}>Cobertura: {cubiertos}/{totalDias} días</Text>
-                            <View style={styles.coberturaDiasRow}>
+                        <View style={styles.chipCoverage}>
+                            <View style={styles.chipCoverageHeader}>
+                                <Text style={styles.chipLabel}>Días cubiertos:</Text>
+                                <Text style={styles.chipValue}>{cubiertos}/{totalDias}</Text>
+                            </View>
+                            <View style={styles.chipDivider} />
+                            <View style={styles.chipCoverageDaysRow}>
                                 {rangoDias.map(d => {
                                     const pid = asignadoPorDia[d];
                                     const asignado = !!pid;
                                     const etiqueta = formatoFecha(d, 'dd/MM');
                                     return (
-                                        <View key={d} style={styles.calDayChip}>
-                                            <Text style={[styles.calDayChipText, asignado ? styles.calDayChipTextAssigned : styles.calDayChipTextUnassigned]}>
+                                        <View key={d} style={[styles.calDayChip, styles.calDayChipTiny]}>
+                                            <Text
+                                                style={[
+                                                    styles.calDayChipText,
+                                                    styles.calDayChipTextTiny,
+                                                    asignado ? styles.calDayChipTextAssigned : styles.calDayChipTextUnassigned,
+                                                ]}
+                                            >
                                                 {etiqueta}
                                             </Text>
                                         </View>
@@ -307,12 +319,15 @@ const styles = StyleSheet.create({
         backgroundColor: colores.fondo,
     },
     header: {
+        width: '100%',
         backgroundColor: colores.primario,
         paddingVertical: height * 0.01,
-        paddingHorizontal: width * 0.04,
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start',
+    },
+    botonAtras: {
+        marginHorizontal: width * 0.04,
     },
     headerTitle: {
         color: colores.terceario,
@@ -340,12 +355,67 @@ const styles = StyleSheet.create({
     encabezadoPostulaciones: {
         flexDirection: 'column',
         alignItems: 'stretch',
-        paddingVertical: height * 0.01,
-        paddingHorizontal: width * 0.01,
+        paddingVertical: 10,
+        paddingHorizontal: 8,
         elevation: 6,
         backgroundColor: colores.terceario,
         borderBottomWidth: 1,
         borderColor: colores.tercearioOscuro,
+    },
+    headerChipsRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 6,
+        marginTop: 4,
+        marginBottom: 4,
+    },
+    chip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colores.secundarioMasClaro,
+        borderRadius: 14,
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+    },
+    chipCoverage: {
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 1,
+        gap: 2,
+        backgroundColor: colores.secundarioMasClaro,
+        borderRadius: 14,
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+    },
+    chipCoverageHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    chipDivider: {
+        alignSelf: 'stretch',
+        height: StyleSheet.hairlineWidth,
+        backgroundColor: colores.tercearioOscuro,
+        opacity: 0.4,
+        marginVertical: 2,
+    },
+    chipCoverageDaysRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+    },
+    chipLabel: {
+        color: colores.primario,
+        fontWeight: 'bold',
+        fontSize: tamanos.menu,
+        marginRight: 6,
+    },
+    chipValue: {
+        fontSize: tamanos.texto,
+        fontWeight: 'bold',
+        color: colores.quinto,
     },
     card: {
         backgroundColor: colores.secundarioClaro,
@@ -520,34 +590,37 @@ const styles = StyleSheet.create({
         width: 260,
         height: 200,
     },
-    coberturaBox: {
-        padding: 10,
-    },
-    coberturaTitulo: {
-        color: colores.quinto,
-        fontWeight: 'bold',
-        marginBottom: 6,
-        textAlign: 'center',
-    },
     coberturaDiasRow: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'center',
+        marginTop: 2,
+        marginBottom: 4,
     },
     calDayChip: {
         minWidth: 0,
-        paddingVertical: 2,
-        paddingHorizontal: 4,
-        borderRadius: 0,
+        paddingVertical: 1,
+        paddingHorizontal: 3,
+        borderRadius: 8,
         borderWidth: 0,
-        margin: 2,
+        margin: 1,
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'transparent',
     },
+    calDayChipTiny: {
+        paddingVertical: 0,
+        paddingHorizontal: 2,
+        margin: 1,
+        borderRadius: 6,
+    },
     calDayChipText: {
-        fontSize: 12,
-        fontWeight: '600',
+        fontSize: 11,
+        fontWeight: '700',
+    },
+    calDayChipTextTiny: {
+        fontSize: 10,
+        fontWeight: '700',
     },
     calDayChipTextAssigned: {
         color: colores.primario,

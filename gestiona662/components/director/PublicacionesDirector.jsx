@@ -5,7 +5,7 @@ import { Picker } from '@react-native-picker/picker';
 import * as SecureStore from 'expo-secure-store';
 import { colores } from '../styles/fuentesyColores';
 import { formatoFecha } from '../../utils/dates';
-import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialIcons, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { URL_BACKEND } from '@env';
 import AppSnackbar from '../AppSnackbar';
 
@@ -42,11 +42,9 @@ const PublicacionesDirector = ({ navigation, route }) => {
 
             if (res.status === 200 && res.headers.get('content-type')?.includes('application/json')) {
                 const data = JSON.parse(text);
-                // El backend devuelve un array de publicaciones con las postulaciones embebidas
                 const publicaciones = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
                 setTotal(publicaciones.length);
                 setDatos(publicaciones);
-                // Construir el mapa de postulaciones a partir de la respuesta
                 const nuevoMapa = {};
                 for (const pub of publicaciones) {
                     nuevoMapa[pub._id] = Array.isArray(pub.postulations) ? pub.postulations : [];
@@ -106,13 +104,11 @@ const PublicacionesDirector = ({ navigation, route }) => {
         }
     }, [route?.params?.refresh]);
 
-    // Mostrar snackbar de "flash" si viene desde otra pantalla
     useEffect(() => {
         const msg = route?.params?.flashMessage;
         if (msg) {
             setSnackbarMessage(msg);
             setSnackbarVisible(true);
-            // limpiar para que no vuelva a mostrarse
             navigation.setParams({ flashMessage: undefined });
         }
     }, [route?.params?.flashMessage]);
@@ -131,7 +127,6 @@ const PublicacionesDirector = ({ navigation, route }) => {
         fetchPublicaciones(1, true).then(() => setRefreshing(false));
     };
 
-    // Sincronizar el mapa de postulaciones desde los datos (evita llamadas por publicación)
     useEffect(() => {
         if (Array.isArray(datos)) {
             const map = {};
@@ -230,15 +225,15 @@ const PublicacionesDirector = ({ navigation, route }) => {
                             size={38}
                             color={(Array.isArray(item.postulations) && item.postulations.length > 0) ||
                                 (Array.isArray(postulaciones[item._id]) && postulaciones[item._id].length > 0)
-                                    ? "#117396"
-                                    : "#B0BEC5"}
+                                ? "#117396"
+                                : "#B0BEC5"}
                             style={estilosPublicacionesDirector.iconShadow}
                         />
                     </TouchableOpacity>
-                    <TouchableOpacity style={estilosPublicacionesDirector.iconButton} onPress={() => {/* acción editar */ }}>
+                    <TouchableOpacity style={estilosPublicacionesDirector.iconButton} onPress={() => {/* TODO: acción editar */ }}>
                         <MaterialCommunityIcons name="square-edit-outline" size={38} color="#117396" style={estilosPublicacionesDirector.iconShadow} />
                     </TouchableOpacity>
-                    <TouchableOpacity style={estilosPublicacionesDirector.iconButton} onPress={() => {/* acción eliminar */ }}>
+                    <TouchableOpacity style={estilosPublicacionesDirector.iconButton} onPress={() => {/* TODO: acción eliminar */ }}>
                         <MaterialCommunityIcons name="trash-can" size={38} color="#117396" style={estilosPublicacionesDirector.iconShadow} />
                     </TouchableOpacity>
                 </View>
@@ -246,36 +241,36 @@ const PublicacionesDirector = ({ navigation, route }) => {
         );
     };
 
-
     return (
-        <View style={{ flex: 1 }}>
-            <View style={estilosPublicacionesDirector.encabezado}>
-                <View style={estilosPublicacionesDirector.filaEncabezado}>
-                    <Text style={estilosPublicacionesDirector.textoEncabezado}>Escuela</Text>
-                    <View style={estilosPublicacionesDirector.pickerWrapper}>
-                        <Picker
-                            selectedValue={escuelaSeleccionada}
-                            onValueChange={(value) => setEscuelaSeleccionada(value)}
-                            style={estilosPublicacionesDirector.selectEscuelasDirector}
-                            dropdownIconColor="white"
-                        >
-                            <Picker.Item label="Seleccione escuela..." value="" />
-                            {escuelas.map((escuela) => (
-                                <Picker.Item
-                                    key={escuela._id}
-                                    label={String(escuela.schoolNumber)}
-                                    value={escuela._id}
-                                />
-                            ))}
-                        </Picker>
-                    </View>
-                </View>
+        <View style={estilosPublicacionesDirector.container}>
+            <View style={estilosPublicacionesDirector.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={estilosPublicacionesDirector.backButton}>
+                    <Ionicons name="arrow-back" size={28} color={colores.cuarto} />
+                </TouchableOpacity>
+                <Text style={estilosPublicacionesDirector.textoEncabezado}>Mis Publicaciones</Text>
             </View>
 
             <View style={{ flex: 1 }}>
                 <View style={estilosPublicacionesDirector.contenedor}>
                     <View style={estilosPublicacionesDirector.filaTitulo}>
-                        <Text style={estilosPublicacionesDirector.titulo}>Publicaciones</Text>
+                        <Text style={estilosPublicacionesDirector.titulo}>Escuela:</Text>
+                        <View style={estilosPublicacionesDirector.pickerWrapperContenido}>
+                            <Picker
+                                selectedValue={escuelaSeleccionada}
+                                onValueChange={(value) => setEscuelaSeleccionada(value)}
+                                style={estilosPublicacionesDirector.selectEscuelasContenido}
+                                dropdownIconColor={colores.primario}
+                            >
+                                <Picker.Item label="Seleccione escuela..." value="" />
+                                {escuelas.map((escuela) => (
+                                    <Picker.Item
+                                        key={escuela._id}
+                                        label={String(escuela.schoolNumber)}
+                                        value={escuela._id}
+                                    />
+                                ))}
+                            </Picker>
+                        </View>
                     </View>
                     <FlatList
                         data={datos}

@@ -12,12 +12,15 @@ export const estilosPublicaciones = StyleSheet.create({
         paddingTop: 0,
     },
     encabezado: {
+        width: '100%',
         backgroundColor: colores.primario,
         paddingVertical: height * 0.01,
-        paddingHorizontal: width * 0.04,
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start',
+    },
+    botonAtras: {
+        marginHorizontal: width * 0.04,
     },
     tituloEncabezado: {
         color: colores.terceario,

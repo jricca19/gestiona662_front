@@ -5,7 +5,7 @@ import { stylesCrearPublicacion } from '../styles/stylesCrearPublicacion';
 import * as SecureStore from 'expo-secure-store';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { URL_BACKEND } from '@env';
-import { fechaStringAFechaUTC, fechaAStringISO, formatoFechaDDMMYYYY, contarDiasLaborales } from '../../utils/dates';
+import { fechaStringAFechaUTC, fechaAStringISO, formatoFechaDDMMYYYY, contarDiasLaborales, fechaStringALocalDate } from '../../utils/dates';
 import { colores } from '../styles/fuentesyColores';
 
 const grados = ['0', '1', '2', '3', '4', '5', '6'];
@@ -37,7 +37,6 @@ const CrearPublicacionDirector = ({ navigation }) => {
             Alert.alert('Rango de fechas inválido', 'La fecha de fin debe ser mayor o igual a la fecha de inicio.');
             return;
         }
-        // Comparar usando medianoche UTC para evitar desfases por zona horaria
         if (desdeDate < hoyUTC) {
             Alert.alert('Fecha inválida', 'La fecha de inicio no puede ser anterior a hoy.');
             return;
@@ -103,7 +102,6 @@ const CrearPublicacionDirector = ({ navigation }) => {
                 setTurno('Matutino');
                 setAyuda('');
                 setIsType662(false);
-                // Navegar y mostrar snackbar en la pantalla de publicaciones
                 navigation.navigate('directorTabs', {
                     screen: 'misPublicaciones',
                     params: { refresh: true, flashMessage: 'Publicación creada correctamente' }
@@ -144,7 +142,6 @@ const CrearPublicacionDirector = ({ navigation }) => {
         obtenerEscuelas();
     }, []);
 
-    // Hoy en horario local (para los pickers) y en UTC (para validaciones lógicas)
     const hoyLocal = new Date();
     hoyLocal.setHours(0, 0, 0, 0);
     const hoyUTC = fechaStringAFechaUTC(fechaAStringISO(new Date()));
@@ -296,7 +293,7 @@ const CrearPublicacionDirector = ({ navigation }) => {
 
                         {showDesdePicker && (
                             <DateTimePicker
-                                value={desde ? fechaStringAFechaUTC(desde) : hoyLocal}
+                                value={desde ? fechaStringALocalDate(desde) : hoyLocal}
                                 mode="date"
                                 display="default"
                                 minimumDate={hoyLocal}
@@ -311,7 +308,7 @@ const CrearPublicacionDirector = ({ navigation }) => {
 
                         {showHastaPicker && (
                             <DateTimePicker
-                                value={hasta ? fechaStringAFechaUTC(hasta) : hoyLocal}
+                                value={hasta ? fechaStringALocalDate(hasta) : hoyLocal}
                                 mode="date"
                                 display="default"
                                 minimumDate={hoyLocal}

@@ -30,7 +30,7 @@ const DetallesPostulacion = ({ navigation, route }) => {
     return (
         <View style={estilosDetalles.contenedor}>
             <View style={estilosDetalles.encabezado}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={estilosDetalles.botonAtras}>
                     <Ionicons name="arrow-back" size={28} color={colores.cuarto} />
                 </TouchableOpacity>
                 <Text style={estilosDetalles.tituloEncabezado}>Detalles</Text>

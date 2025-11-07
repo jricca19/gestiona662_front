@@ -176,11 +176,10 @@ const Publicaciones = ({ navigation }) => {
     return (
         <View style={{ flex: 1 }}>
             <View style={estilosPublicaciones.encabezado}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={estilosPublicaciones.botonAtras}>
                     <Ionicons name="arrow-back" size={28} color={colores.cuarto} />
                 </TouchableOpacity>
                 <Text style={estilosPublicaciones.tituloEncabezado}>Búsqueda</Text>
-                <View style={{ width: 28 }} />
             </View>
             <View style={{ flex: 1, alignItems: 'center' }}>
                 <View style={estilosPublicaciones.contenedor}>

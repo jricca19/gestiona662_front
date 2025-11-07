@@ -5,18 +5,25 @@ import { he } from 'date-fns/locale';
 const { width, height } = Dimensions.get('window');
 
 export const estilosPublicacionesDirector = StyleSheet.create({
-    encabezado: {
+    container: {
+        flex: 1,
+        backgroundColor: colores.fondo,
+    },
+    header: {
         width: '100%',
         backgroundColor: colores.primario,
         paddingVertical: height * 0.01,
-        justifyContent: 'center',
-        position: 'relative',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
     },
     textoEncabezado: {
-        textAlign: 'center',
         color: colores.terceario,
         fontSize: tamanos.titulo1,
         fontWeight: 'bold',
+    },
+    backButton: {
+        marginHorizontal: width * 0.04,
     },
     selectEscuelasDirector: {
         color: 'white',
@@ -31,6 +38,21 @@ export const estilosPublicacionesDirector = StyleSheet.create({
         width: width * 0.30,
         height: height * 0.05,
         justifyContent: 'center',
+    },
+    pickerWrapperContenido: {
+        borderWidth: 1,
+        borderColor: colores.tercearioOscuro || '#ccc',
+        borderRadius: 6,
+        overflow: 'hidden',
+        width: width * 0.45,
+        height: height * 0.05,
+        justifyContent: 'center',
+        backgroundColor: 'white',
+    },
+    selectEscuelasContenido: {
+        color: colores.quinto,
+        width: '100%',
+        fontSize: 16,
     },
     filaEncabezado: {
         flexDirection: 'row',
@@ -63,7 +85,8 @@ export const estilosPublicacionesDirector = StyleSheet.create({
     filaTitulo: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start',
+        gap: 10,
         paddingVertical: height * 0.02,
         paddingHorizontal: width * 0.04,
     },

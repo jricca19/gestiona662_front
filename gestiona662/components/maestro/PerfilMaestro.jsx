@@ -134,14 +134,12 @@ const PerfilMaestro = ({ navigation }) => {
         }
     };
 
-    // mostrar la fecha en DD/MM/YYYY
     const formatoFechaDisplay = (dateStr) => {
         if (!dateStr) return '';
         const [year, month, day] = dateStr.split('-');
         return `${day}/${month}/${year}`;
     };
 
-    // guardar la fecha en YYYY-MM-DD
     const formatoFechaSave = (dateObj) => {
         const year = dateObj.getFullYear();
         const month = String(dateObj.getMonth() + 1).padStart(2, '0');

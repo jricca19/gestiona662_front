@@ -191,11 +191,10 @@ const PostulacionesMaestro = ({ navigation, route }) => {
     return (
         <View style={{ flex: 1 }}>
             <View style={estilosPostulaciones.encabezado}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={estilosPostulaciones.botonAtras}>
                     <Ionicons name="arrow-back" size={28} color={colores.cuarto} />
                 </TouchableOpacity>
                 <Text style={estilosPostulaciones.tituloEncabezado}>Postulaciones</Text>
-                <View style={{ width: 28 }} />
             </View>
             <View style={{ flex: 1, alignItems: 'center' }}>
                 <View style={estilosPostulaciones.contenedor}>

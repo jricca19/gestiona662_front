@@ -17,18 +17,24 @@ export function formatoFecha(dateStr, pattern = 'dd/MM/yyyy') {
 
 export function fechaStringAFechaUTC(isoDateStr) {
     const [year, month, day] = isoDateStr.split('-').map(Number);
-    // Crear la fecha en UTC para evitar desplazamientos por zona horaria
     return new Date(Date.UTC(year, month - 1, day));
 }
 
 export function fechaAStringISO(d) {
     if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
     const date = new Date(d);
-    // Extraer siempre en UTC para no retroceder/avanzar un día por la zona horaria local
     const year = date.getUTCFullYear();
     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
     const day = String(date.getUTCDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+}
+
+export function fechaStringALocalDate(isoDateStr) {
+    if (typeof isoDateStr !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(isoDateStr)) {
+        return new Date();
+    }
+    const [year, month, day] = isoDateStr.split('-').map(Number);
+    return new Date(year, month - 1, day);
 }
 
 export function formatoFechaDDMMYYYY(dateStr) {
