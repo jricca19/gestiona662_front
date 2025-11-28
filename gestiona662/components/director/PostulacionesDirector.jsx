@@ -93,7 +93,7 @@ const PostulacionesPublicacion = ({ navigation, route }) => {
         const disponibles = getDiasDisponibles(post);
         const iniciales = disponibles.filter(d => !asignadoPorDia[d]);
         if (iniciales.length === 0) {
-            Alert.alert('Sin días disponibles', 'Este postulante no tiene días libres sin conflicto.');
+            Alert.alert('Sin días disponibles', 'No quedan días libres a cubrir.');
             return;
         }
         setSeleccion(prev => ({ ...prev, [pid]: iniciales }));
@@ -128,7 +128,7 @@ const PostulacionesPublicacion = ({ navigation, route }) => {
 
     const onConfirmar = async () => {
         if (!puedeConfirmar) {
-            Alert.alert('Cobertura incompleta', 'Debes cubrir todos los días de la publicación sin superposiciones.');
+            Alert.alert('Cobertura incompleta', 'Debes cubrir todos los días de la publicación.');
             return;
         }
 
@@ -139,7 +139,7 @@ const PostulacionesPublicacion = ({ navigation, route }) => {
                 selectedDays,
             }));
 
-            const res = await fetch(`${URL_BACKEND}/v1/publications/assignPostulation/multiple`, {
+            const res = await fetch(`${URL_BACKEND}/v1/publications/assignPostulation`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -154,7 +154,7 @@ const PostulacionesPublicacion = ({ navigation, route }) => {
                 Alert.alert('¡Éxito!', 'Postulación asignada correctamente');
                 setSeleccion({});
             } else {
-                Alert.alert('Error', 'Error al asignar: ' + data.message);
+                Alert.alert('Error de asignación', data.message);
             }
         } catch (error) {
             Alert.alert('Error', 'Error de red al asignar la postulación');
@@ -232,7 +232,6 @@ const PostulacionesPublicacion = ({ navigation, route }) => {
 
                         const diasDisponibles = getDiasDisponibles(post);
                         const seleccionado = !!seleccion[postulacionId];
-                        const diasAsignadosEste = new Set(seleccion[postulacionId] || []);
 
                         return (
                             <TouchableOpacity
@@ -384,6 +383,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         flexShrink: 1,
+        alignSelf: 'center',
         gap: 2,
         backgroundColor: colores.secundarioMasClaro,
         borderRadius: 14,
